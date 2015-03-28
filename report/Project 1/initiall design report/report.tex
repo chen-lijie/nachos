@@ -1,0 +1,327 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings, xcolor}
+\newcommand{\Class}{Operation System}
+\newcommand{\ClassInstructor}{Wei Xu}
+\newcommand{\Break}{\State \textbf{break} }
+
+% Homework Specific Information. Change it to your own
+
+% In case you need to adjust margins:
+\topmargin=-0.45in      %
+\evensidemargin=0in     %
+\oddsidemargin=0in      %
+\textwidth=6.5in        %
+\textheight=9.0in       %
+\headsep=0.25in         %
+
+% Setup the header and footer                                 %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Some tools
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make title
+\title{Project 1 - Initial Design Document}
+\author{Chen Lijie\\ 2013011313\and
+	Fan Haoqiang\\ 2011012357\and
+	Bi Ke\\ 2011012360}
+\date{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+	\maketitle
+	\tableofcontents
+	\section{Our git Repository}
+	\texttt{https://github.com/wjmzbmr/nachos}
+	\section{Implementation of KThread.join()}
+	
+	\subsection{Correctness Invariants}
+	
+	\begin{itemize}
+		\item A thread should not join to itself and a finished thread should not join to other threads.
+		\item The method need to be made atomic, by disabling interrupting at first, and restore it when the method returns.
+		\item Whether being joined or not, a thread must finish executing normally.
+	\end{itemize}
+
+	\subsection{Declaration}
+	\begin{itemize}
+		\item In class KThread, add a member variable waiterQueue(a queue of Thread), which stores the joined threads.
+		
+		\item Modification in KThread.join() and Thread.finish().
+    \end{itemize}
+	
+	\subsection{Description}
+	
+	The pseudocodes for modifications of both methods are listed below.
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {join()}{}
+   				\State Disable Interruption
+				\If{this != currentThread and this.status != statusFinished}
+					\State add currentThread to waiterQueue
+					\State Let the currentThread sleeps
+				\EndIf
+				\State Restore Interruption
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {finish()}{}
+				\State ...
+				\State currentThread.status = statusFinished
+				\State Wake up threads in waiterQueue.
+				\State sleep()
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	
+	\subsection{Testing strategy}
+	
+	We plan to make the following tests.
+	\subsubsection*{1. Standard Case Testing}
+	Make a thread, joined it to another one, and check whether it running order is the same as our expectation.
+	
+	\subsubsection*{2. A thread joined to many other threads}
+	Make a thread, joined it to several other threads and check whether the result is the same as our expectation.
+	
+	\subsubsection*{3. A thread be joined by many other threads}
+	Make a thread, let it be joined by several other threads and check whether the result is the same as our expectation.
+	
+	\subsubsection*{4. Corner Case Testing}
+	Make some threads be joined to itself, and join some finished threads to other threads to see whether or not those corner cases are correctly handled.
+	
+	\newpage
+	
+	\section{Another Implementation of Condition Variable}
+	
+	\subsection{Correctness Invariants}
+	
+	\subsubsection*{sleep()}
+	\begin{itemize}
+		\item The current thread must hold the lock before the method, and get the lock again after the method.
+		
+		\item The operation that releases the lock and put the current thread into the waiting queue  must be atomic.
+	\end{itemize}
+	
+	\subsubsection*{wake()}
+	\begin{itemize}
+		\item The current thread must hold the lock before the method.
+			
+		\item The operation that wake up a thread which called sleep() before must be atomic.
+	\end{itemize}
+	
+	\subsubsection*{wakeAll()}
+	\begin{itemize}
+		\item The current thread must hold the lock before the method.
+		
+		\item The operation that wake up all the threads which called sleep() before must be atomic.
+	\end{itemize}
+	
+	\subsection{Declaration}
+	
+	\begin{itemize}
+		\item In class Condition2, add a member variable waiterQueue(a queue of Thread), which stores the waiting threads.
+		
+		\item a method sleep(), same functionality as in the class Condition.
+		
+		\item a method wake(), same functionality as in the class Condition.
+		
+		\item a method wakAll(), same functionality as in the class Condition.
+	\end{itemize}
+	
+	\subsection{Description}
+	
+	Following are the pseudocodes for all the methods above.
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {sleep()}{}
+				\State Lib.assertTrue(conditionLock.isHeldByCurrentThread())
+				\State Disable Interruption
+				\State Add currentThread to waiterQueue
+				\State Release the lock
+				\State let currentThread sleep
+				\State Acquire the lock
+				\State Restore Interruption
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+		
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {wake()}{}
+				\State Lib.assertTrue(conditionLock.isHeldByCurrentThread())
+				\State Disable Interruption
+				\If{WaiterQueue is not empty}
+					\State Wake up and remove one thread in the waiterQueue.
+				\EndIf
+				\State Restore Interruption
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {wakeAll()}{}
+				\State Lib.assertTrue(conditionLock.isHeldByCurrentThread())
+				\State Disable Interruption
+				\While{WaiterQueue is not empty}
+					\State Wake up and remove one thread in the waiterQueue.
+				\EndWhile
+				\State Restore Interruption
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\subsection{Testing strategy}
+	
+	\subsubsection*{1. Using Condition2 to implement the producer and consumer problem}
+	
+	Write a simple program which use Condition2 to implement the producer and consumer problem and check whether or not the results are meeting our expectation.
+%	
+	\section{Implementation of the Alarm}
+	
+	\subsection{Correctness Invariants}
+	
+	\subsubsection*{waitUntil()}
+	\begin{itemize}
+		\item The operation that moving the currentThread into the waiting queue and sleep it must be atomic.
+	\end{itemize}
+	
+	\subsubsection*{timerInterrupt()}
+	\begin{itemize}
+		\item Every threads whose waiting time is over must be waken up.
+		
+		\item The operation that wakes up all those threads must be atomic.
+	\end{itemize}
+	
+	\subsection{Declaration}
+	
+	\begin{itemize}
+		\item A new class WaitingThread, which records a thread which are waiting together with its designated waking up time. It should be comparable by its waking up time.
+		
+		\item A new member priority queue waiterQueue in the class Alarm, which stores all the WaitingThread according to their waking up time, so we can retrieve the thread with minimum waking up time quickly.
+		
+		\item Modification in timerInterrupt().
+		
+		\item Modification in waitUntil().
+	\end{itemize}
+	
+	\subsection{Description}
+	
+	Following are the pseudocodes for all the methods above.
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {WaitingThread(wakeTime,Thread)}{}
+				\State \Return a WaitingThread object with the given wakeTime and Thread
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {waitUntil(x)}{}
+				\State Disable Interruption
+				\State wakeTime $ \leftarrow$ currentSystemTime + x
+				\State Add WaitingThread(wakeTime,currentThread) to waiterQueue
+				\State let the currentThread sleep.
+				\State Restore Interruption
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {timerInterrupt(x)}{}
+			\State Disable Interruption
+			\While{The waiterQueue is not empty}
+				\State t $\leftarrow$ waiterQueue.peek()
+				\If{t.wakeTime $>$ currentSystemTime}
+					\Break
+				\EndIf
+				\State Wake t up
+				\State waiterQueue.poll()
+			\EndWhile		
+			\State Restore Interruption
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\subsection{Testing strategy}
+	
+	\subsection*{1. Specified Ordering}
+	Make many threads(around $50$), and let the $i$-th thread waitUntil with a corresponding with x=$2000 \cdot i$. 
+	
+	Then we check whether their are waken up at the same order.
+	
+	\subsection*{2. Specified Ordering with small x}
+	Change the x in the previous test to $200$ to see what happens, note $200$ is smaller than the timer's clock ticks.
+	
+	\subsection*{3. Randomized Ordering}
+	Make many threads(with varying multitude like $10$, $100$,$1000$) with randomized x.
+	
+	Then we check whether their waken up order meets our expectation.
+%	
+	\section{Implementation of the Communicator}
+	
+	\subsection{Correctness Invariants}
+	
+	\subsubsection*{speak()}
+	\begin{itemize}
+		\item The speaker will wait if its word are not listener by a listener.
+		\item The operation that setting the spoken word must be atomic.
+		\item The speaker can not setting the spoken word if it has not been taken by a listener.
+	\end{itemize}
+	
+	\subsubsection*{listen()}
+	\begin{itemize}
+		\item The listener will wait if there is no set word.
+		\item The operation that taking the spoken word must be atomic.
+	\end{itemize}
+	
+	\subsection{Declaration}
+	\begin{itemize}
+		%\item Our solution follow the same spirit for the bounded buffer problem(Indeed it is a special case for it, so the correctness is obvious)
+		\item A lock mutex, which ensure the operation involving the word must be atomic.
+		
+		\item 4 variables, AS,AL,WS,WL, indicate the current number of active speaker, active listener, waiting speaker, waiting listener.
+		
+		\item 
+	\end{itemize}
+	
+	\subsection{Description}
+	
+	\subsection{Testing strategy}
+%	
+%	\section{Implementation of the PriorityScheduler}
+%	
+%	\subsection{Correctness Invariants}
+%	
+%	\subsection{Declaration}
+%	
+%	\subsection{Description}
+%	
+%	\subsection{Testing strategy}
+%	
+%	\section{Solution to the Boat Problem}
+%	
+%	\subsection{Correctness Invariants}
+%	
+%	\subsection{Declaration}
+%	
+%	\subsection{Description}
+%	
+%	\subsection{Testing strategy}
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
