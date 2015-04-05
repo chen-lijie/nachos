@@ -733,6 +733,7 @@
 			\While{!can(ADULT,oahu) OR oahu.children $>=$ 2}
 				\If{oahu.hasBoat}
 					waitOahu.wakeAll()
+				\EndIf
 				\State waitOahu.sleep()
 			\EndWhile
 			\State travel(ADULT,true,true,oahu,molokai)
@@ -756,6 +757,8 @@
 						\State waitOahu.sleep()
 					\EndWhile
 					\State oahu.waitingChildren +=1
+					\If{oahu.child $>=$ 2}
+					\EndIf
 				\EndIf
 			\EndWhile
 			\EndProcedure

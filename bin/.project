@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>nachos</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>Makefile</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/nachos/Makefile</locationURI>
+		</link>
+		<link>
+			<name>README</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/nachos/README</locationURI>
+		</link>
+		<link>
+			<name>bin</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/nachos/bin</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

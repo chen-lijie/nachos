@@ -1,4 +1,5 @@
 #!/bin/sh
+
 # Shell-script front-end to run Nachos.
 # Simply sets terminal to a minimum of one byte to complete a read and
 # disables character echo. Restores original terminal state on exit.

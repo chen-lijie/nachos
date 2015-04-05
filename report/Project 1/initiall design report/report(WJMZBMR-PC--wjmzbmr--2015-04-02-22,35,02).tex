@@ -29,9 +29,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make title
 \title{Project 1 - Initial Design Document}
-\author{Chen Lijie\\ 2013011313\and
-	Fan Haoqiang\\ 2011012357\and
-	Bi Ke\\ 2011012360}
+\author{Chen Lijie\\ \and
+	Fan Haoqiang\\ \and
+	Bi Ke\\ }
 \date{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -100,8 +100,6 @@
 	
 	\subsubsection*{4. Corner Case Testing}
 	Make some threads be joined to itself, and join some finished threads to other threads to see whether or not those corner cases are correctly handled.
-	
-	\newpage
 	
 	\section{Another Implementation of Condition Variable}
 	
@@ -365,7 +363,7 @@
 	\subsection{Testing strategy}
 	
 	\subsubsection*{Randomized test}
-	Generate some speakers and listeners randomly, and check whether the correctness conditions are met.
+	Generate some speakers and listeners on the same communicator randomly, and check whether the correctness conditions are met.
 %	
 	\section{Implementation of the PriorityScheduler}
 	
@@ -500,10 +498,10 @@
 	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {updateWaiter(state, EP)}{}
-				waiters.remove(state)
-				state.effectivePriority $\leftarrow$ EP
-				watiers.add(state)
-				update()
+				\State waiters.remove(state)
+				\State state.effectivePriority $\leftarrow$ EP
+				\State watiers.add(state)
+				\State update()
 			\EndProcedure
 		\end{algorithmic}
 	\end{algorithm}
@@ -588,9 +586,6 @@
 			\State update()
 			\EndProcedure
 		\end{algorithmic}
-	\end{algorithm}
-	
-	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {updateResource(res, maxP)}{}
 			\State resources.remove(res)
@@ -599,18 +594,12 @@
 			\State update()
 			\EndProcedure
 		\end{algorithmic}
-	\end{algorithm}
-	
-	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {addResource(res)}{}
 			\State resources.add(res)
 			\State update()
 			\EndProcedure
 		\end{algorithmic}
-	\end{algorithm}
-	
-	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {removeResource(res)}{}
 			\State resources.remove(res)
@@ -621,14 +610,18 @@
 	
 	\subsection{Testing strategy}
 	
-	\subsubsection*{Randomized Test}
+	\subsubsection*{Single queue}
+	Set up a single resource, and fork many threads which waits for it, check whether they are executed in the correct order.
+	
+	\subsubsection*{Many conditions}
+	Set up a couple of condition variables, and many threads waiting on them, print the thread denoting process and the queue content, to ensure that the priority is donated correctly and the thread are executed in the correct order of the effective priority.
 %	
 	\section{the Boat Problem}
 	
 	\subsection{Correctness Invariants}
 	
 	\begin{itemize}
-		\item The method begin() should return correctly, that is, every adults and children should ended up at Molokai.
+		\item Every adults and children should ended up at Molokai when begin() ends.
 		
 		\item During the boat move, there must be at most one adults or two children on the boat, but not one adult and one children, and not empty as well. 
 	\end{itemize}
@@ -636,9 +629,7 @@
 	\subsection{A simple illustration of the strategy}
 	
 	\begin{itemize}
-		\item Note that it clearly makes no sense for an adult or two children to move from Molokai to Oahu.
-		
-		\item If there are only one child and more than one adults at the start, the task is impossible.
+		\item Note that it clearly makes no sense for an adult or two children to move from Molokai to Oahu. And if there are only one child and more than one adults at the start, the task is impossible.
 		
 		\item On Oahu, if there are more than two children, let two travel to Molokai. Otherwise if there are adults, let one travel to Molokai. Otherwise let the only child travel to Molokai if exists.
 		
@@ -673,9 +664,6 @@
 			\EndWhile
 			\EndProcedure
 		\end{algorithmic}
-	\end{algorithm}
-	
-	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {can(type, side)}{}
 				\If{!side.hasBoat}
@@ -684,46 +672,54 @@
 				\If{type == ADULT}
 					\State \Return side.waitingChildren == 0
 				\Else
-					\State \Return side.waitingChildren <= 1
+					\State \Return side.waitingChildren $<=$ 1
 				\EndIf
 			\EndProcedure
 		\end{algorithmic}
-	\end{algorithm}
+	\begin{algorithmic}
+		\Procedure {report()}{}
+		\State communicator.speaker(molokai.adult + molokai.children)
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+	%Sudden appearance is possible, will this cause troubles?
+	
 	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {travel(type, row, ride, from, to)}{}
-		 	\State //row = True, it pilots, otherwise it is a passenger.
+			\State //row = True, it pilots, otherwise it is a passenger.
 			\State base on type, row and to, call the specific method of bg.(like ChildRowToMolokai()).
 			
 			\If{type == ADULT}
-				\State from.adult -= 1
-				\State to.adult +=1
+			\State from.adult -= 1
+			\State to.adult +=1
 			\Else
-				\State from.children -= 1
-				\State to.children +=1
+			\State from.children -= 1
+			\If{from == oahu}
+			\State from.waitingChildren -= 1
+			\EndIf
+			\State to.children +=1
 			\EndIf
 			
 			\If{row}
-				from.hasBoat=false
+			\State from.hasBoat=false
 			\EndIf
 			
 			\State //this will enforces that between the pilot's arrives and ride's arrive, the boat is at nowhere.
 			
 			\If{ride}
-				to.hasBoat=true
+				\State to.hasBoat=true
+				\If{to == molokai}
+					\State report()
+					\State waitMolokai.wakeAll()
+				\Else
+					\State waitOahu.wakeAll()
+				\EndIf
 			\EndIf
 			\EndProcedure
 		\end{algorithmic}
 	\end{algorithm}
-		\begin{algorithm}[H]
-			\begin{algorithmic}
-				\Procedure {report()}{}
-				\State communicator.speaker(molokai.adult + molokai.children)
-				\EndProcedure
-			\end{algorithmic}
-		\end{algorithm}
 	
-	%Sudden appearance is possible, will this cause troubles?
 	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {AdultItinerary()}{}
@@ -731,13 +727,12 @@
 			\State oahu.adult += 1
 			\State boatMutex.acquire()
 			\While{!can(ADULT,oahu) OR oahu.children $>=$ 2}
-				\If{oahu.hasBoat}
-					waitOahu.wakeAll()
-				\State waitOahu.sleep()
+			\If{oahu.hasBoat}
+			waitOahu.wakeAll()
+			\EndIf
+			\State waitOahu.sleep()
 			\EndWhile
 			\State travel(ADULT,true,true,oahu,molokai)
-			\State waitMolokai.wakeAll()
-			\State report()
 			\State boatMutex.release()
 			\EndProcedure
 		\end{algorithmic}
@@ -753,16 +748,45 @@
 				\State boatMutex.acquire()
 				\If{where == oahu}
 					\While{!can(CHILD,oahu) OR (oahu.adult $>$ 0 AND oahu.child = 1)}
+						\If{oahu.hasBoat}
+							 waitOahu.wakeAll()
+						\EndIf
 						\State waitOahu.sleep()
 					\EndWhile
 					\State oahu.waitingChildren +=1
+					\If{oahu.child $>=$ 2}
+						\If{oahu.waitingChildren == 1}
+							\State waitToGo.sleep()
+							\State travel(CHILD,false,true,oahu,molokai)
+						\Else
+							\State waitToGo.wake()
+							\State travel(CHILD,true,false,oahu,molokai)
+						\EndIf
+					\Else
+						\State travel(CHILD,true,true,oahu,molokai)
+					\EndIf
+				\Else
+					\While{!can(CHILD,molokai)}
+					    \If{molokai.hasBoaat}
+					    	\State waitMolokai.wakeAll()
+					    \EndIf
+					    \State waitMolokai.sleep()
+					\EndWhile
+					\State travel(CHILD,true,true,molokai,oahu)
 				\EndIf
+				\State boatMutex.release()
 			\EndWhile
 			\EndProcedure
 		\end{algorithmic}
 	\end{algorithm}
 	
 	\subsection{Testing strategy}
+	
+	\subsubsection*{Randomized General Test}
+	Start with 3 to 5 adults and children and output the resulting plan and check the output manually. To increase the confidence, we can check it many times.
+	
+	\subsubsection*{A special Test}
+	One concern is that a person may appear while somebody else are viewing the information, this might cause trouble, so we fork many children(around 20), and to see the results is whether what we expected or not.
 \end{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
