@@ -1,6 +1,7 @@
 package nachos.threads;
 
 import nachos.ag.BoatGrader;
+import nachos.machine.Lib;
 
 public class Boat {
 	static BoatGrader bg;
@@ -203,8 +204,7 @@ public class Boat {
 		// all of them on the boat). Please also note that you may not
 		// have a single thread calculate a solution and then just play
 		// it back at the autograder -- you will be caught.
-		System.out
-				.println("\n ***Everyone piles on the boat and goes to Molokai***");
+		Lib.debug('m',"\n ***Everyone piles on the boat and goes to Molokai***");
 		bg.AdultRowToMolokai();
 		bg.ChildRideToMolokai();
 		bg.AdultRideToMolokai();

@@ -455,7 +455,7 @@ public class PriorityScheduler extends Scheduler {
 				int s=0;
 				for (int i=0;i<10;i++){
 					ThreadedKernel.alarm.waitUntil(1000);
-					System.out.println("Low is happy "+i);
+					Lib.debug('m',"Low is happy "+i);
 				}
 				mutex.release();
 			}
@@ -469,7 +469,7 @@ public class PriorityScheduler extends Scheduler {
 				int s=0;
 				for (int i=0;i<10;i++){
 					ThreadedKernel.alarm.waitUntil(1000);
-					System.out.println("High is happy "+i);
+					Lib.debug('m',"High is happy "+i);
 				}
 				mutex.release();
 			}
@@ -481,7 +481,7 @@ public class PriorityScheduler extends Scheduler {
 				int s=0;
 				for (int i=0;i<10;i++){
 					ThreadedKernel.alarm.waitUntil(1000);
-					System.out.println("Middle is always happy "+i);
+					Lib.debug('m',"Middle is always happy "+i);
 				}
 			}
 		});
