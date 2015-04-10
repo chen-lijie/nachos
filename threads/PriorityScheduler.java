@@ -443,4 +443,53 @@ public class PriorityScheduler extends Scheduler {
 
 		ThreadedKernel.alarm.waitUntil(10000);
 	}
+	
+	//explicit test of priority inversion
+	public static void selfTest3(){
+		final Lock mutex = new Lock();
+		boolean intStatus = Machine.interrupt().disable();
+		KThread t=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				mutex.acquire();
+				int s=0;
+				for (int i=0;i<10;i++){
+					ThreadedKernel.alarm.waitUntil(1000);
+					System.out.println("Low is happy "+i);
+				}
+				mutex.release();
+			}
+		});
+		ThreadedKernel.scheduler.setPriority(t,0);
+		KThread t2=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				ThreadedKernel.alarm.waitUntil(5000);
+				mutex.acquire();
+				int s=0;
+				for (int i=0;i<10;i++){
+					ThreadedKernel.alarm.waitUntil(1000);
+					System.out.println("High is happy "+i);
+				}
+				mutex.release();
+			}
+		});
+		ThreadedKernel.scheduler.setPriority(t2,2);
+		KThread t3=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int s=0;
+				for (int i=0;i<10;i++){
+					ThreadedKernel.alarm.waitUntil(1000);
+					System.out.println("Middle is always happy "+i);
+				}
+			}
+		});
+		ThreadedKernel.scheduler.setPriority(t3,1);
+		t.fork();
+		t2.fork();
+		t3.fork();
+		Machine.interrupt().restore(intStatus);
+		ThreadedKernel.alarm.waitUntil(1000000);
+	}
 }
