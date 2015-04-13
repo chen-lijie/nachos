@@ -1,9 +1,7 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  31 MAR 2015 22:35
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  13 APR 2015 23:47
 entering extended mode
 **report.tex
-
-("E:\Users\wjmzbmr\Documents\百度云同步盘\study\2015-Spring\Operating Sys
-tem\Project\Project 1\initiall design report\report.tex"
+("C:\Homework\Operating System\Project 1\initiall design report\report.tex"
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
 abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
@@ -209,8 +207,7 @@ Package graphics Info: Driver file: pdftex.def on input line 91.
 \WF@everypar=\toks24
 Package: wrapfig 2003/01/31  v 3.6
 )
-("E:\Users\wjmzbmr\Documents\百度云同步盘\study\2015-Spring\Operating Sys
-tem\Project\Project 1\initiall design report\report.aux")
+("C:\Homework\Operating System\Project 1\initiall design report\report.aux")
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 38.
 LaTeX Font Info:    ... okay on input line 38.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 38.
@@ -238,9 +235,8 @@ LaTeX Font Info:    ... okay on input line 38.
 \MPnumerator=\count123
 \makeMPintoPDFobject=\count124
 \everyMPtoPDFconversion=\toks26
-)
-("E:\Users\wjmzbmr\Documents\百度云同步盘\study\2015-Spring\Operating Sys
-tem\Project\Project 1\initiall design report\report.toc" [1
+) ("C:\Homework\Operating System\Project 1\initiall design report\report.toc"
+[1
 
 {C:/Users/wjmzbmr/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}])
 \tf@toc=\write3
@@ -255,32 +251,31 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 [6] [7] <structure.png, id=33, 527.72156pt x 377.15906pt>
 File: structure.png Graphic file (type png)
  <use structure.png>
-Package pdftex.def Info: structure.png used on input line 391.
+Package pdftex.def Info: structure.png used on input line 402.
 (pdftex.def)             Requested size: 227.62204pt x 162.67592pt.
 
-[8 <E:/Users/wjmzbmr/Documents/百度云同步盘/study/2015-Spring/Operating S
-ystem/Project/Project 1/initiall design report/structure.png>] [9] [10]
-[11] [12] [13] [14] [15]
-("E:\Users\wjmzbmr\Documents\百度云同步盘\study\2015-Spring\Operating Sys
-tem\Project\Project 1\initiall design report\report.aux") ) 
+[8 <C:/Homework/Operating System/Project 1/initiall design report/structure.png
+>] [9] [10] [11] [12] [13] [14] [15]
+("C:\Homework\Operating System\Project 1\initiall design report\report.aux") ) 
 Here is how much of TeX's memory you used:
  4110 strings out of 493921
- 55608 string characters out of 3147276
+ 55068 string characters out of 3147276
  127215 words of memory out of 3000000
  7378 multiletter control sequences out of 15000+200000
  9492 words of font info for 35 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
  27i,6n,35p,313b,285s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/Program Files/Mi
-KTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Program Files/MiKTeX 2.9
-/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/t
-ype1/public/amsfonts/cm/cmcsc10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/pu
-blic/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/ams
-fonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/
-cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17.pfb
-><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Pro
-gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on report.pdf (15 pages, 161501 bytes).
+<
+C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Progr
+am Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files
+/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><C:/Program Files/MiKTeX
+ 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.9/fon
+ts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/
+public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/am
+sfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm
+/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.
+pfb>
+Output written on report.pdf (15 pages, 161797 bytes).
 PDF statistics:
  88 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
