@@ -83,6 +83,80 @@ public class Alarm {
 			return thread.compareTo(o.thread);
 		}
 	}
+	
+	//run many threads, see what happened;
+	public static void selfTest(){
+		KThread t1=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int t=4000;
+				ThreadedKernel.alarm.waitUntil(t);
+				Lib.debug('m',"wake "+t);
+			}
+		});
+		KThread t2=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int t=40;
+				ThreadedKernel.alarm.waitUntil(t);
+				Lib.debug('m',"wake "+t);
+			}
+		});
+		KThread t3=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int t=10000;
+				ThreadedKernel.alarm.waitUntil(t);
+				Lib.debug('m',"wake "+t);
+			}
+		});
+		KThread t4=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int t=2000;
+				ThreadedKernel.alarm.waitUntil(t);
+				Lib.debug('m',"wake "+t);
+			}
+		});
+		KThread t5=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int t=400;
+				ThreadedKernel.alarm.waitUntil(t);
+				Lib.debug('m',"wake "+t);
+			}
+		});
+		KThread t6=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int t=200;
+				ThreadedKernel.alarm.waitUntil(t);
+				Lib.debug('m',"wake "+t);
+			}
+		});
+		KThread t7=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				int t=20;
+				ThreadedKernel.alarm.waitUntil(t);
+				Lib.debug('m',"wake "+t);
+			}
+		});
+		t1.fork();
+		t2.fork();
+		t3.fork();
+		t4.fork();
+		t5.fork();
+		t6.fork();
+		t7.fork();
+		t1.join();
+		t2.join();
+		t3.join();
+		t4.join();
+		t5.join();
+		t6.join();
+		t7.join();
+	}
 
 	private PriorityQueue<WaitingThread> waiterQueue = new PriorityQueue<WaitingThread>();
 }

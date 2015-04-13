@@ -434,6 +434,47 @@ public class KThread {
 		new KThread(new PingTest(1)).setName("forked thread").fork();
 		new PingTest(0).run();
 	}
+	//test for thread joining
+	public static void selfTest2(){
+		Runnable playload=new Runnable(){
+			@Override
+			public void run(){
+				for (int i=0;i<10;i++){
+					ThreadedKernel.alarm.waitUntil(1000);
+				}
+				Lib.debug('m',"child dead");
+			}
+		};
+		KThread t1=new KThread(playload);
+		t1.fork();
+		t1.join();
+		Lib.debug('m',"parent returned");
+		KThread t2=new KThread(playload);
+		KThread t3=new KThread(playload);
+		t2.fork();
+		t3.fork();
+		t2.join();
+		t3.join();
+		Lib.debug('m',"parent returned");
+		final KThread t4=new KThread(playload);
+		
+		//what if one thread is joined by multiple threads?
+		KThread t5=new KThread(new Runnable(){
+			@Override
+			public void run(){
+				t4.join();
+				Lib.debug('m',"another child returned");
+			}
+		});
+		t4.fork();
+		t5.fork();
+		t4.join();
+		t5.join();
+		Lib.debug('m',"parent returned");
+		
+		//This will cause an assertion fail
+		//currentThread.join();
+	}
 
 	private static final char dbgThread = 't';
 
