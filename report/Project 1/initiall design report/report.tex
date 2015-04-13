@@ -100,18 +100,15 @@
 	
 	\subsection{Description of Tests}
 	
-	\subsubsection*{1. Standard Case Testing}
-	Make a thread, joined it to another one, and check whether it running order is the same as our expectation.
+	\subsubsection*{1. Standard case testing}
+	Fork a thread, see if it can be joined by the main thread and the thread terminates before join() returns.
 	
-	\subsubsection*{2. A thread joined to many other threads}
-	Make a thread, joined it to several other threads and check whether the result is the same as our expectation.
+	\subsubsection*{2. A thread joining multiple threads}
+	Fork two threads. The main thread joins them one by one.
 	
-	\subsubsection*{3. A thread be joined by many other threads}
-	Make a thread, let it be joined by several other threads and check whether the result is the same as our expectation.
-	
-	\subsubsection*{4. Corner Case Testing}
-	Make some threads be joined to itself, and join some finished threads to other threads to see whether or not those corner cases are correctly handled.
-	
+	\subsubsection*{3. Additional test}
+	Fork two threads, one joining another. The main thread joins them both. This tests whether a thread can be joined by multiple threads (although not required).
+		
 	\section{Another Implementation of Condition Variable}
 	
 	\subsection{Correctness Invariants}
@@ -197,6 +194,7 @@
 	\subsubsection*{1. Using Condition2 to implement the producer and consumer problem}
 	
 	Write a simple program which use Condition2 to implement the producer and consumer problem and check whether or not the results are meeting our expectation.
+	The producer just increment a counter. The consumer decrements it. This is essentially a Semaphore.
 %	
 	\section{Implementation of the Alarm}
 	
@@ -269,18 +267,8 @@
 	
 	\subsection{Testing strategy}
 	
-	\subsubsection*{1. Specified Ordering}
-	Make many threads(around $50$), and let the $i$-th thread waitUntil with a corresponding with x=$2000 \cdot i$. 
-	
-	Then we check whether their are waken up at the same order.
-	
-	\subsubsection*{2. Specified Ordering with small x}
-	Change the x in the previous test to $200$ to see what happens, note $200$ is smaller than the timer's clock ticks.
-	
-	\subsubsection*{3. Randomized Ordering}
-	Make many threads(with varying multitude like $10$, $100$,$1000$) with randomized x.
-	
-	Then we check whether their waken up order meets our expectation.
+	\subsubsection*{1. Sleep based sorting}
+	Fork many threads. Let them sleep for 20~10000 ticks. See if those that have sleep long enough (>one time slice) wake up in the correct order.
 %	
 	\section{Implementation of the Communicator}
 	
@@ -621,11 +609,13 @@
 	
 	\subsection{Testing strategy}
 	
-	\subsubsection*{Single queue}
-	Set up a single resource, and fork many threads which waits for it, check whether they are executed in the correct order.
+	\subsubsection*{Normal Case Testing}
+	Since this module has essentially been exercised by all tests, we ignore this part.
 	
-	\subsubsection*{Many conditions}
-	Set up a couple of condition variables, and many threads waiting on them, print the thread denoting process and the queue content, to ensure that the priority is donated correctly and the thread are executed in the correct order of the effective priority.
+	\subsubsection*{Priority Inversion}
+	Fork three threads, let their priorities be 0,1,2. 0 holds a lock and attempt to run. 2 sleeps for a while and try to acquire that lock. 1 sleeps a little time and runs. Initially, 0 should be running. Then 1 preempts it. When 2 begins to wait for the lock, 0 should win. Then 0 finishes, 2 finishes and 1 finishes.
+	
+	This test covers both priority setting and donation.
 %	
 	\section{the Boat Problem}
 	
@@ -794,10 +784,7 @@
 	\subsection{Testing strategy}
 	
 	\subsubsection*{Randomized General Test}
-	Start with 3 to 5 adults and children and output the resulting plan and check the output manually. To increase the confidence, we can check it many times.
-	
-	\subsubsection*{A special Test}
-	One concern is that a person may appear while somebody else are viewing the information, this might cause trouble, so we fork many children(around 20), and to see the results is whether what we expected or not.
+	Put varying number of adults and children on the shore. See if the code remains correct at the presence of many people. Also check that the main thread is informed of the termination of other threads.
 \end{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
