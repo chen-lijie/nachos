@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  20 APR 2015 18:02
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  20 APR 2015 20:38
 entering extended mode
 **report.tex
 ("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.tex
@@ -237,21 +237,17 @@ LaTeX Font Info:    ... okay on input line 38.
 \makeMPintoPDFobject=\count124
 \everyMPtoPDFconversion=\toks26
 )
-("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.toc
-")
-\tf@toc=\write3
- [1
-
-{C:/Users/wjmzbmr/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 51.
-
-("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 47.
+ ("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 51.
- [2] [3] [4] [5]
-[6] [7]
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 47.
+ [1
+
+{C:/Users/wjmzbmr/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2] [3] [
+4] [5] [6]
+[7]
 Overfull \vbox (14.07266pt too high) has occurred while \output is active []
 
 
@@ -259,8 +255,8 @@ Overfull \vbox (14.07266pt too high) has occurred while \output is active []
 ("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.aux
 ") ) 
 Here is how much of TeX's memory you used:
- 4102 strings out of 493921
- 54984 string characters out of 3147276
+ 4099 strings out of 493921
+ 54826 string characters out of 3147276
  129215 words of memory out of 3000000
  7372 multiletter control sequences out of 15000+200000
  9492 words of font info for 35 fonts, out of 3000000 for 9000
@@ -270,14 +266,15 @@ Here is how much of TeX's memory you used:
 Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program 
 Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><C:/Program Files/M
 iKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.
-9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/t
-ype1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
-ic/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfon
-ts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cm
-tt10.pfb>
-Output written on report.pdf (15 pages, 147505 bytes).
+9/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Program Files/MiKTeX 2.9/fonts/t
+ype1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
+ic/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfon
+ts/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cms
+y10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+
+Output written on report.pdf (15 pages, 155342 bytes).
 PDF statistics:
- 87 PDF objects out of 1000 (max. 8388607)
+ 91 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

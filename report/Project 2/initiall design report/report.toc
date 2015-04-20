@@ -4,30 +4,29 @@
 \contentsline {subsection}{\numberline {2.2}Correctness Invariants}{2}
 \contentsline {subsection}{\numberline {2.3}Declaration}{2}
 \contentsline {subsection}{\numberline {2.4}Description}{2}
-\contentsline {subsection}{\numberline {2.5}Description of Tests}{7}
+\contentsline {subsection}{\numberline {2.5}Description of Tests}{6}
 \contentsline {section}{\numberline {3}Implementation of Support for Multiprogramming}{7}
 \contentsline {subsection}{\numberline {3.1}A simple illustration}{7}
 \contentsline {subsection}{\numberline {3.2}Correctness Invariants}{7}
 \contentsline {subsection}{\numberline {3.3}Declaration}{7}
 \contentsline {subsection}{\numberline {3.4}Description}{7}
-\contentsline {subsection}{\numberline {3.5}Description of Tests}{9}
-\contentsline {section}{\numberline {4}Implementation of System calls exec, join and exit}{9}
-\contentsline {subsection}{\numberline {4.1}A simple illustration}{9}
-\contentsline {subsection}{\numberline {4.2}Correctness Invariants}{9}
-\contentsline {subsection}{\numberline {4.3}Declaration}{9}
-\contentsline {subsection}{\numberline {4.4}Description}{9}
-\contentsline {subsection}{\numberline {4.5}Description of Tests}{11}
-\contentsline {section}{\numberline {5}Implementation of LotteryScheduler}{11}
-\contentsline {subsection}{\numberline {5.1}A simple illustration}{11}
-\contentsline {subsection}{\numberline {5.2}Correctness Invariants}{11}
-\contentsline {subsection}{\numberline {5.3}Declaration}{11}
-\contentsline {subsection}{\numberline {5.4}Declaration}{11}
-\contentsline {subsubsection}{\numberline {5.4.1}LotteryScheduler}{11}
-\contentsline {subsubsection}{\numberline {5.4.2}Kthread}{11}
-\contentsline {subsubsection}{\numberline {5.4.3}PriorityThreadQueue}{11}
-\contentsline {subsubsection}{\numberline {5.4.4}SchedulingState}{12}
-\contentsline {subsection}{\numberline {5.5}Description}{12}
-\contentsline {subsubsection}{\numberline {5.5.1}Scheduler}{12}
-\contentsline {subsubsection}{\numberline {5.5.2}LotteryThreadQueue}{12}
-\contentsline {subsubsection}{\numberline {5.5.3}SchedulingState}{14}
-\contentsline {subsection}{\numberline {5.6}Description of Tests}{15}
+\contentsline {subsection}{\numberline {3.5}Description of Tests}{10}
+\contentsline {section}{\numberline {4}Implementation of System calls exec, join and exit}{10}
+\contentsline {subsection}{\numberline {4.1}A simple illustration}{10}
+\contentsline {subsection}{\numberline {4.2}Correctness Invariants}{10}
+\contentsline {subsection}{\numberline {4.3}Declaration}{10}
+\contentsline {subsection}{\numberline {4.4}Description}{11}
+\contentsline {subsection}{\numberline {4.5}Description of Tests}{12}
+\contentsline {section}{\numberline {5}Implementation of LotteryScheduler}{12}
+\contentsline {subsection}{\numberline {5.1}A simple illustration}{12}
+\contentsline {subsection}{\numberline {5.2}Correctness Invariants}{12}
+\contentsline {subsection}{\numberline {5.3}Declaration}{12}
+\contentsline {subsubsection}{\numberline {5.3.1}LotteryScheduler}{12}
+\contentsline {subsubsection}{\numberline {5.3.2}Kthread}{12}
+\contentsline {subsubsection}{\numberline {5.3.3}PriorityThreadQueue}{13}
+\contentsline {subsubsection}{\numberline {5.3.4}SchedulingState}{13}
+\contentsline {subsection}{\numberline {5.4}Description}{13}
+\contentsline {subsubsection}{\numberline {5.4.1}Scheduler}{13}
+\contentsline {subsubsection}{\numberline {5.4.2}LotteryThreadQueue}{14}
+\contentsline {subsubsection}{\numberline {5.4.3}SchedulingState}{15}
+\contentsline {subsection}{\numberline {5.5}Description of Tests}{16}
