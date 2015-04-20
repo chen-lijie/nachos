@@ -421,18 +421,331 @@
 	\end{algorithm}
 	\subsection{Description of Tests}
 	\section{Implementation of System calls exec, join and exit}
+	\subsection{A simple illustration}
+	In this architecture, we only have one thread for each process, which will simplify things a lot.
 	\subsection{Correctness Invariants}
 	\subsection{Declaration}
+	\subsubsection*{UserProcess}
 	\begin{itemize}
-		\item 
+		\item A static member processCounter(already defined in Task I).
+		\item A member thread of type UThread, denoting the thread of the current process.
+		\item A member parent of type UserProcess, denoting the parent of the current thread.
+		\item A member childList of type List$<$UserProcess$>$, denoting the children threads of the current thread.
+		\item A member mapExitStatus of type Map$<$Integer,Integer$>$, which map the children process Id to its exit Status. And a lock mapExitStatusLock, we prevent atomic access for this map.
+		
+		\item Modification in UserProcess().
+		
+		\item Methods handleJoin(),handleExec(),handleExit(), with corresponding functionality.
 	\end{itemize}
 	\subsection{Description}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {UserProcess()}{}
+			\State Disable interruption.
+			\State processId $\leftarrow$ processCounter.
+			\State processCounter ++.
+			\State Enable interruption.
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleExit(status)}{}
+			\State Disable interruption.
+			\State unLoadSections()
+			\State set the parent to null for every process in childList
+			\If{parent != null}
+			\State parent.mapExitStatus.put(processId,status)
+			\EndIf
+			\If{processId == 0}
+			\State terminate the Kernel.
+			\Else
+			\State terminate current thread.
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleJoin(pid,addr)}{}
+			\State child $\leftarrow$ the process in childList with processId pid
+			\If{no such process in above}
+			\State \Return -1
+			\EndIf
+			\If{child.thread !=null}
+			\State child.thread.join()
+			\EndIf
+			\State child.parent $\leftarrow$ null
+			\State remove child from childList
+			\State exitStatusLock.acquire()
+			\State status $\leftarrow$
+		 mapExitStatus.get(child.processId)
+		 \State mapExitStatus.remove(child.processId)
+		 \State exitStatusLock.release()
+		    \If{status is an abnormally exit}
+		    \State \Return 0
+		    \EndIf
+		    %What if I can't write to addr?
+		    \State write status to addr
+		    \State \Return 1
+		    \EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleExec(addr,argc,argv)}{}
+			\If{addr or argc is not valid}
+			\State \Return -1
+			\EndIf
+			\State file $\leftarrow$ readVirtualMemoryString(addr,256)
+			\If{file == null OR file is not valid}
+			\State \Return -1
+			\EndIf
+			\State arguments $\leftarrow$ parse argc argument for argv.
+			\If{the above parsing failed}
+			\State \Return -1
+			\EndIf
+			\State child $\leftarrow$ new UserProcess
+			\If{child.execute(file,arguments)}
+			\State child.parent $\leftarrow$ this
+			\State childList.add(child)
+			\State \Return child.processId
+			\Else
+			\State \Return -1
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
 	\subsection{Description of Tests}
 	\section{Implementation of LotteryScheduler}
 	\subsection{A simple illustration}
+	Indeed we don't need to change much details from our previous implementation of priority Scheduler.
+	
+	We only need to change the update for the priority donation and the way to pick the next thread.
 	\subsection{Correctness Invariants}
 	\subsection{Declaration}
+	
+	\subsection{Declaration}
+	\subsubsection{LotteryScheduler}
+	
+	\begin{itemize}
+		\item Implementation of getPriority(), setPriority() and getEffectivePriority().
+	\end{itemize}
+	
+	\subsubsection{Kthread}
+	
+	\begin{itemize}
+		\item Notice that the original Kthread Object has a member schedulingState, which can be used to record its scheduling state.
+	\end{itemize}
+	\subsubsection{PriorityThreadQueue}
+	
+	\begin{itemize}
+		\item Make a subclass of ThreadQueue named LotteryThreadQueue. Which is supposed to maintain the threads waiting for this resource.
+		
+		\item A member variable resourceHolder, which points to the thread which holds the resource.
+		
+		\item A member variable sumPriority, which denoting the sum effective priority in the waiterQueue, set as 0 if waiters is empty.
+		
+		\item A binary search tree of SchedulingState waiters contains all the waiting threads.
+		
+		\item implementation of nextThread(), acquire(), waitForAccess().
+	\end{itemize}
+	
+	\subsubsection{SchedulingState}
+	
+	\begin{itemize}
+		\item member variables thread, priority, effectivePriority, waitingResource which corresponding to the thread it represents, the priority of that thread, the effective priority of that thread, and the resource this thread is waiting for.
+		
+		\item (modification)A member variable resources implemented by a binary search tree, which holds all the resources acquired by this thread.
+	\end{itemize}
 	\subsection{Description}
+	
+	\subsubsection{Scheduler}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {getPriority(thread)}{}
+			\State \Return thread.schedulingState.priority
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {getEffectivePriority(thread)}{}
+			\State \Return thread.schedulingState.effectivePriority
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {setPriority(thread, p)}{}
+			\If{p $<$ priorityMinimum OR p $>$ priorityMaximum}
+			\State \Return
+			\EndIf
+			\State thread.schedulingState.setPriority(p)
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\subsubsection{LotteryThreadQueue}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {Initialize()}{}
+			\State resourceHolder $\leftarrow$ null;
+			\State waiters $\leftarrow$ new empty TreeSet.
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {update(tmp)}{}
+			\If{tmp != sumPriority}
+			\If{resourceHolder != null}
+			\State resourceHolder.updateResource(this,maxPriority)
+			\Else
+			\State sumPriority $\leftarrow$ tmp
+			\EndIf
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {updateWaiter(state, EP)}{}
+			\State tmp $\leftarrow$ sumPriority
+			\State waiters.remove(state)
+			\State tmp $\leftarrow$ tmp - state.effectivePriority
+			\State state.effectivePriority $\leftarrow$ EP
+			\State watiers.add(state)
+			\State tmp $\leftarrow$ tmp + state.effectivePriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {waitForAccess(thread)}{}
+			\State state $\leftarrow$ thread.schedulingState
+			\State tmp $\leftarrow$ sumPriority
+			\State state.waitingResource $\leftarrow$ this
+			\State waiterQueue.add(state)
+			\State tmp $\leftarrow$ tmp + state.effectivePriority
+			\State update()
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {acquire(thread)}{}
+			\State state $\leftarrow$ thread.schedulingState
+			\State resourceHolder $\leftarrow$ state
+			\State state.addResource(this)
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {nextThread()}{}
+			\If{resourceHolder != null}
+			\State resourceHolder.removeResource(this)
+			\State resourceHolder $\leftarrow$ null
+			\EndIf
+			\State state $\leftarrow$ pickNextThread()
+			\If{state == null}
+			\State \Return null
+			\EndIf
+			\State thread $\leftarrow$ state.thread
+			\State update()
+			\State state.waitingResource = null
+			\State state.addResource(this);
+			\Return thread
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+		\begin{algorithm}[H]
+			\begin{algorithmic}
+				\Procedure {pickNextThread()}{}
+				\State rnd $\leftarrow$ random number form 0 to sumPriority-1
+				\For{i in waiters}
+				\State rnd $\leftarrow$ rnd - i.effectivePriority
+				\If{rnd < 0}
+				\State \Return i.thread
+				\EndIf
+				\EndFor
+				\EndProcedure
+			\end{algorithmic}
+		\end{algorithm}
+	
+	\subsubsection{SchedulingState}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {Initialize()}{}
+			\State priority, effectivePriority $\leftarrow$ priorityDefault
+			\State resources $\leftarrow$ empty TreeSet
+			\State waitingResource $\leftarrow$ null
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {update(tmp)}{}
+			\If{tmp != effectivePriority}
+			\If{waitingResource != null}
+			\State waitingResource.updateWaiter(this,tmp)
+			\Else
+			\State effectivePriority $\leftarrow$ tmp
+			\EndIf
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {setPriority(p)}{}
+			\State tmp $\leftarrow$ effectivePriority
+			\State tmp $\leftarrow$ tmp - priority
+			\State priority $\leftarrow$ p
+			\State tmp $\leftarrow$ tmp + priority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {updateResource(res, maxP)}{}
+			\State resources.remove(res)
+			\State tmp $\leftarrow$ effectivePriority
+			\State tmp $\leftarrow$ tmp - res.sumPriority
+			\State res.maxPriority $\leftarrow$ maxP
+			\State resources.add(res)
+			\State tmp $\leftarrow$ tmp + res.sumPriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {addResource(res)}{}
+			\State tmp $\leftarrow$ effectivePriority
+			\State resources.add(res)
+			\State tmp $\leftarrow$ tmp + res.sumPriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {removeResource(res)}{}
+			\State tmp $\leftarrow$ effectivePriority
+			\State resources.remove(res)
+			\State tmp $\leftarrow$ tmp - res.sumPriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
 	\subsection{Description of Tests}
 \end{document}
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  19 APR 2015 16:52
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  20 APR 2015 18:02
 entering extended mode
 **report.tex
 ("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.tex
@@ -255,14 +255,14 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 Overfull \vbox (14.07266pt too high) has occurred while \output is active []
 
 
-[8] [9]
+[8] [9] [10] [11] [12] [13] [14] [15]
 ("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.aux
 ") ) 
 Here is how much of TeX's memory you used:
- 4101 strings out of 493921
- 54972 string characters out of 3147276
+ 4102 strings out of 493921
+ 54984 string characters out of 3147276
  129215 words of memory out of 3000000
- 7371 multiletter control sequences out of 15000+200000
+ 7372 multiletter control sequences out of 15000+200000
  9492 words of font info for 35 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
  27i,6n,35p,282b,282s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -275,9 +275,9 @@ ype1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
 ic/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfon
 ts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cm
 tt10.pfb>
-Output written on report.pdf (9 pages, 135391 bytes).
+Output written on report.pdf (15 pages, 147505 bytes).
 PDF statistics:
- 68 PDF objects out of 1000 (max. 8388607)
+ 87 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
