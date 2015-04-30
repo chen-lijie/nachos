@@ -118,7 +118,7 @@ public class PriorityScheduler extends Scheduler {
 	 *            the thread whose scheduling state to return.
 	 * @return the scheduling state of the specified thread.
 	 */
-	protected ThreadState getThreadState(KThread thread) {
+	private ThreadState getThreadState(KThread thread) {
 		if (thread.schedulingState == null)
 			thread.schedulingState = new ThreadState(thread);
 
@@ -247,7 +247,7 @@ public class PriorityScheduler extends Scheduler {
 	 *
 	 * @see nachos.threads.KThread#schedulingState
 	 */
-	protected class ThreadState implements Comparable<ThreadState> {
+	private class ThreadState implements Comparable<ThreadState> {
 		/**
 		 * Allocate a new <tt>ThreadState</tt> object and associate it with the
 		 * specified thread.
@@ -443,49 +443,49 @@ public class PriorityScheduler extends Scheduler {
 
 		ThreadedKernel.alarm.waitUntil(10000);
 	}
-	
-	//explicit test of priority inversion
-	public static void selfTest3(){
+
+	// explicit test of priority inversion
+	public static void selfTest3() {
 		final Lock mutex = new Lock();
 		boolean intStatus = Machine.interrupt().disable();
-		KThread t=new KThread(new Runnable(){
+		KThread t = new KThread(new Runnable() {
 			@Override
-			public void run(){
+			public void run() {
 				mutex.acquire();
-				int s=0;
-				for (int i=0;i<10;i++){
+				int s = 0;
+				for (int i = 0; i < 10; i++) {
 					ThreadedKernel.alarm.waitUntil(1000);
-					Lib.debug('m',"Low is happy "+i);
+					Lib.debug('m', "Low is happy " + i);
 				}
 				mutex.release();
 			}
 		});
-		ThreadedKernel.scheduler.setPriority(t,0);
-		KThread t2=new KThread(new Runnable(){
+		ThreadedKernel.scheduler.setPriority(t, 0);
+		KThread t2 = new KThread(new Runnable() {
 			@Override
-			public void run(){
+			public void run() {
 				ThreadedKernel.alarm.waitUntil(5000);
 				mutex.acquire();
-				int s=0;
-				for (int i=0;i<10;i++){
+				int s = 0;
+				for (int i = 0; i < 10; i++) {
 					ThreadedKernel.alarm.waitUntil(1000);
-					Lib.debug('m',"High is happy "+i);
+					Lib.debug('m', "High is happy " + i);
 				}
 				mutex.release();
 			}
 		});
-		ThreadedKernel.scheduler.setPriority(t2,2);
-		KThread t3=new KThread(new Runnable(){
+		ThreadedKernel.scheduler.setPriority(t2, 2);
+		KThread t3 = new KThread(new Runnable() {
 			@Override
-			public void run(){
-				int s=0;
-				for (int i=0;i<10;i++){
+			public void run() {
+				int s = 0;
+				for (int i = 0; i < 10; i++) {
 					ThreadedKernel.alarm.waitUntil(1000);
-					Lib.debug('m',"Middle is always happy "+i);
+					Lib.debug('m', "Middle is always happy " + i);
 				}
 			}
 		});
-		ThreadedKernel.scheduler.setPriority(t3,1);
+		ThreadedKernel.scheduler.setPriority(t3, 1);
 		t.fork();
 		t2.fork();
 		t3.fork();

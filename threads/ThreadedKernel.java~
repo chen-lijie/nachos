@@ -47,9 +47,9 @@ public class ThreadedKernel extends Kernel {
 	 */
 	public void selfTest() {
 		//Boat.selfTest();
-		 //LotteryScheduler.selfTest1();
-		 //LotteryScheduler.selfTest2();
-		 LotteryScheduler.selfTest3();
+		 LotteryScheduler.selfTest1();
+		 LotteryScheduler.selfTest2();
+		 //LotteryScheduler.selfTest3();
 		// PriorityScheduler.selfTest1();
 		// PriorityScheduler.selfTest2();
 		// PriorityScheduler.selfTest3();
