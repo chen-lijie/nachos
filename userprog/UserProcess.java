@@ -5,8 +5,12 @@ import nachos.threads.*;
 import nachos.userprog.*;
 
 import java.io.EOFException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import javax.swing.text.AsyncBoxView.ChildLocator;
 
 /**
  * Encapsulates the state of a user process that is not contained in its user
@@ -26,6 +30,7 @@ public class UserProcess {
 	 */
 	public UserProcess() {
 		boolean intStatus = Machine.interrupt().disable();
+		// disable here to make sure processId is unique
 		processId = processCounter++;
 		fileList = new OpenFile[MAX_FILE_OPEN];
 		fileList[0] = UserKernel.console.openForReading();
@@ -65,7 +70,9 @@ public class UserProcess {
 		if (!load(name, args))
 			return false;
 
-		new UThread(this).setName(name).fork();
+		// save the thread here
+		thread = new UThread(this);
+		thread.setName(name).fork();
 
 		return true;
 	}
@@ -578,6 +585,91 @@ public class UserProcess {
 		return -1;
 	}
 
+	private int handleExit(int status) {
+		Machine.interrupt().disable();
+		// disable here ... to make life easier <_<
+		unloadSections();
+
+		for (UserProcess child : childList) {
+			child.parent = null;
+		}
+
+		if (parent != null) {
+			parent.exitStatusMap.put(processId, status);
+		}
+
+		if (processId == 0)
+			Kernel.kernel.terminate();
+		else
+			UThread.finish();
+
+		Lib.assertNotReached();
+		return -1;
+	}
+
+	private int handleJoin(int pid, int addr) {
+		UserProcess child = null;
+		for (UserProcess p : childList) {
+			if (p.processId == pid)
+				child = p;
+		}
+		if (child == null)
+			return -1;
+		if (child.thread != null)
+			child.thread.join();
+		child.parent = null;
+		childList.remove(child);
+		mapLock.acquire();
+		if (!exitStatusMap.containsKey(child.processId)) {
+			mapLock.release();
+			return 0;
+		}
+		int status = exitStatusMap.get(child.processId);
+		exitStatusMap.remove(child.processId);
+		mapLock.release();
+
+		if (status == UNEXPECTED_EXCEPTION) {
+			return 0;
+		}
+
+		byte[] temp = Lib.bytesFromInt(status);
+		writeVirtualMemory(addr, temp);
+		// What if the above fails? return 1 or 0?
+		// From syscall.h I think it is 1.
+		return 1;
+	}
+
+	private int handleExec(int addr, int argc, int argv) {
+		if (addr < 0 || argc < 0 || argv < 0)
+			return -1;
+		String file = readVirtualMemoryString(addr, 256);
+		if (file != null || !file.toLowerCase().endsWith(".coff"))
+			return -1;
+
+		String[] arguments = new String[argc];
+		// read those arguments from virtual address
+		for (int i = 0; i < argc; i++) {
+			byte[] tmp = new byte[4];
+			int got = readVirtualMemory(argv + i * 4, tmp);
+			if (got < 4)
+				return -1;
+
+			int argAddr = Lib.bytesToInt(tmp, 0);
+			arguments[i] = readVirtualMemoryString(argAddr, 256);
+			if (arguments[i] == null)
+				return -1;
+		}
+
+		UserProcess child = UserProcess.newUserProcess();
+		if (child.execute(file, arguments)) {
+			child.parent = this;
+			childList.add(child);
+			return child.processId;
+		}
+
+		return -1;
+	}
+
 	private static final int syscallHalt = 0, syscallExit = 1, syscallExec = 2,
 			syscallJoin = 3, syscallCreate = 4, syscallOpen = 5,
 			syscallRead = 6, syscallWrite = 7, syscallClose = 8,
@@ -653,9 +745,27 @@ public class UserProcess {
 		switch (syscall) {
 		case syscallHalt:
 			return handleHalt();
-
+		case syscallExit:
+			return handleExit(a0);
+		case syscallExec:
+			return handleExec(a0, a1, a2);
+		case syscallJoin:
+			return handleJoin(a0, a1);
+		case syscallCreate:
+			return handleCreate(a0);
+		case syscallOpen:
+			return handleOpen(a0);
+		case syscallRead:
+			return handleRead(a0, a1, a2);
+		case syscallWrite:
+			return handleWrite(a0, a1, a2);
+		case syscallClose:
+			return handleClose(a0);
+		case syscallUnlink:
+			return handleUnlink(a0);
 		default:
 			Lib.debug(dbgProcess, "Unknown syscall " + syscall);
+			handleException(UNKNOWN_SYSTEM_CALL);
 			Lib.assertNotReached("Unknown system call!");
 		}
 		return 0;
@@ -682,10 +792,13 @@ public class UserProcess {
 			processor.writeRegister(Processor.regV0, result);
 			processor.advancePC();
 			break;
-
+		case UNKNOWN_SYSTEM_CALL:
+			// ignore it
+			break;
 		default:
 			Lib.debug(dbgProcess, "Unexpected exception: "
 					+ Processor.exceptionNames[cause]);
+			handleExit(UNEXPECTED_EXCEPTION);
 			Lib.assertNotReached("Unexpected exception");
 		}
 	}
@@ -701,6 +814,12 @@ public class UserProcess {
 	private OpenFile[] fileList;
 	private int processId;
 
+	private LinkedList<UserProcess> childList = new LinkedList<UserProcess>();
+	private UserProcess parent = null;
+	private Map<Integer, Integer> exitStatusMap = new HashMap<Integer, Integer>();
+	private Lock mapLock = new Lock();
+	private UThread thread;
+
 	/** The number of pages in the program's stack. */
 	protected final int stackPages = 8;
 
@@ -712,6 +831,9 @@ public class UserProcess {
 	private static final int MAX_BUFFER_SIZE = 1 << 15;
 	private static final byte[] BUFFER = new byte[MAX_BUFFER_SIZE];
 	private static final int MAX_FILE_OPEN = 16;
+
+	private static final int UNEXPECTED_EXCEPTION = -1234;
+	private static final int UNKNOWN_SYSTEM_CALL = -1235;
 
 	protected static int processCounter = 0;
 }
