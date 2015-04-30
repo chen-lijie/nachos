@@ -38,8 +38,36 @@
 \begin{document}
 	\maketitle
 	\tableofcontents
-	\section{Our git Repository}
+	\section{Preface}
+	\subsection{Our git Repository}
 	\texttt{https://github.com/wjmzbmr/nachos}
+	
+	\subsection{Location of our test cases}
+	All test cases can be found as a statistic member method in the corresponding class.
+	
+	For example, there are 3 tests PriorityScheduler, then the are the following static methods:
+	
+	\begin{lstlisting}[language=java]
+	public class PriorityScheduler extends Scheduler {
+	    ...
+	    public static void selfTest1() {
+	        ...
+	    }
+	    public static void selfTest2() {
+	        ...
+	    }
+	    public static void selfTest3() {
+	        ...
+	    }
+	}
+	
+	\end{lstlisting}
+	\subsection{Highlight of the modifications}
+	We found our initial design already pretty good, so we made few changes in it.
+	
+	We highlight those changes by a simple tag (modification), which are placed before those changes.
+	
+	\newpage
 	\section{Implementation of KThread.join()}
 	
 	\subsection{Correctness Invariants}
@@ -55,7 +83,9 @@
 	\begin{itemize}
 		\item In class KThread, add a member variable waiterQueue(a queue of Thread), which stores the joined threads.
 		
-		\item Modification in KThread.join() and Thread.finish(). And a initialize code block in KThread.
+		\item Modification in KThread.join() and Thread.finish(). 
+		
+		\item (Modification)And a initialize code block in KThread, to unify this and the priority donation process.
     \end{itemize}
 	
 	\subsection{Description}
@@ -98,7 +128,7 @@
 	\end{algorithm}
 	
 	
-	\subsection{Description of Tests}
+	\subsection{Testing strategy}
 	
 	\subsubsection*{1. Standard case testing}
 	Fork a thread, see if it can be joined by the main thread and the thread terminates before join() returns.
@@ -196,6 +226,7 @@
 	Write a simple program which use Condition2 to implement the producer and consumer problem and check whether or not the results are meeting our expectation.
 	The producer just increment a counter. The consumer decrements it. This is essentially a Semaphore.
 %	
+    \newpage
 	\section{Implementation of the Alarm}
 	
 	\subsection{Correctness Invariants}
@@ -268,7 +299,7 @@
 	\subsection{Testing strategy}
 	
 	\subsubsection*{1. Sleep based sorting}
-	Fork many threads. Let them sleep for 20~10000 ticks. See if those that have sleep long enough (>one time slice) wake up in the correct order.
+	Fork many threads. Let them sleep for 20$\sim$10000 ticks. See if those that have sleep long enough ($>$one time slice) wake up in the correct order.
 %	
 	\section{Implementation of the Communicator}
 	
@@ -414,9 +445,11 @@
 		
 		\item A member variable maxPriority, which denoting the maximum effective priority in the waiterQueue, set as minimum if waiters is empty.
 		
-		\item A binary search tree of SchedulingState waiters contains all the waiting threads, and compare them with the priority and the enqueue Time.
+		\item (modification)A binary search tree of SchedulingState waiters contains all the waiting threads, and compare them with the priority and the enqueue Time. (In a previous version we think that a heap will suffice here, but then we found we need a BST to support the updating operations.)
 		
 		\item implementation of nextThread(), acquire(), waitForAccess().
+		
+		\item (modification) A member variable enqueueId, which denoting the id will be given to the next thread. (This is used to replaced the need for the system time, and it is much simpler.)
 	\end{itemize}
 	
 	\subsubsection{SchedulingState}
@@ -425,7 +458,7 @@
 			
 			\item member variables thread, priority, enqueueTime, effectivePriority, waitingResource which corresponding to the thread it represents, the priority of that thread, the enqueueTime of that thread, the effective priority of that thread, and the resource this thread is waiting for.
 			
-			\item A member variable resources implemented by a binary search tree, which holds all the resources acquired by this thread.
+			\item (modification)A member variable resources implemented by a binary search tree, which holds all the resources acquired by this thread. (In a previous version we think that a heap will suffice here, but then we found we need a BST to support the updating operations.)
 		\end{itemize}
 	
 	\subsection{Description}
@@ -505,11 +538,13 @@
 		\end{algorithmic}
 	\end{algorithm}
 	
+	(modification)
 	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {waitForAccess(thread)}{}
 			\State state $\leftarrow$ thread.schedulingState
-			\State state.enqueueTime $\leftarrow$ currentTime
+			\State state.enqueueTime $\leftarrow$ enqueueId
+			\State enqueueId $\leftarrow$ enqueueId + 1
 			\State state.waitingResource $\leftarrow$ this
 			\State waiterQueue.add(state)
 			\State update()

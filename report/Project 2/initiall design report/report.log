@@ -1,7 +1,7 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  14 APR 2015 13:00
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2014.8.23)  20 APR 2015 20:38
 entering extended mode
 **report.tex
-("C:\Users\wjmzbmr\OS\nachos\report\Project 1\initiall design report\report.tex
+("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.tex
 "
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
@@ -208,7 +208,7 @@ Package graphics Info: Driver file: pdftex.def on input line 91.
 \WF@everypar=\toks24
 Package: wrapfig 2003/01/31  v 3.6
 )
-("C:\Users\wjmzbmr\OS\nachos\report\Project 1\initiall design report\report.aux
+("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.aux
 ")
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 38.
 LaTeX Font Info:    ... okay on input line 38.
@@ -237,49 +237,44 @@ LaTeX Font Info:    ... okay on input line 38.
 \makeMPintoPDFobject=\count124
 \everyMPtoPDFconversion=\toks26
 )
-("C:\Users\wjmzbmr\OS\nachos\report\Project 1\initiall design report\report.toc
-" [1
-
-{C:/Users/wjmzbmr/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}])
-\tf@toc=\write3
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 48.
-
-("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 47.
+ ("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 48.
- [2] [3] [4] [5]
-[6] [7] <structure.png, id=33, 527.72156pt x 377.15906pt>
-File: structure.png Graphic file (type png)
- <use structure.png>
-Package pdftex.def Info: structure.png used on input line 390.
-(pdftex.def)             Requested size: 227.62204pt x 162.67592pt.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 47.
+ [1
 
-[8 <C:/Users/wjmzbmr/OS/nachos/report/Project 1/initiall design report/structur
-e.png>] [9] [10] [11] [12] [13] [14] [15]
-("C:\Users\wjmzbmr\OS\nachos\report\Project 1\initiall design report\report.aux
+{C:/Users/wjmzbmr/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2] [3] [
+4] [5] [6]
+[7]
+Overfull \vbox (14.07266pt too high) has occurred while \output is active []
+
+
+[8] [9] [10] [11] [12] [13] [14] [15]
+("C:\Users\wjmzbmr\OS\nachos\report\Project 2\initiall design report\report.aux
 ") ) 
 Here is how much of TeX's memory you used:
- 4110 strings out of 493921
- 55113 string characters out of 3147276
- 127215 words of memory out of 3000000
- 7378 multiletter control sequences out of 15000+200000
+ 4099 strings out of 493921
+ 54826 string characters out of 3147276
+ 129215 words of memory out of 3000000
+ 7372 multiletter control sequences out of 15000+200000
  9492 words of font info for 35 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
- 27i,6n,35p,330b,283s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 27i,6n,35p,282b,282s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/
 Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program 
 Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><C:/Program Files/M
 iKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.
-9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/t
-ype1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
-ic/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfon
-ts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cm
-tt10.pfb>
-Output written on report.pdf (15 pages, 160103 bytes).
+9/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Program Files/MiKTeX 2.9/fonts/t
+ype1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
+ic/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfon
+ts/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cms
+y10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+
+Output written on report.pdf (15 pages, 155342 bytes).
 PDF statistics:
- 88 PDF objects out of 1000 (max. 8388607)
+ 91 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
