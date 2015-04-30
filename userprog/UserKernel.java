@@ -1,6 +1,7 @@
 package nachos.userprog;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import nachos.machine.*;
@@ -16,6 +17,7 @@ public class UserKernel extends ThreadedKernel {
 	 */
 	public UserKernel() {
 		super();
+
 	}
 
 	/**
@@ -32,6 +34,17 @@ public class UserKernel extends ThreadedKernel {
 				exceptionHandler();
 			}
 		});
+
+		pageMutex.acquire();
+
+		int numPages = Machine.processor().getNumPhysPages();
+
+		avaPages.clear();
+		for (int i = 0; i < numPages; i++) {
+			avaPages.add(i);
+		}
+
+		pageMutex.release();
 	}
 
 	/**
@@ -206,4 +219,7 @@ public class UserKernel extends ThreadedKernel {
 
 	// dummy variables to make javac smarter
 	private static Coff dummy1 = null;
+
+	protected static LinkedList<Integer> avaPages = new LinkedList<Integer>();
+	protected static Lock pageMutex = new Lock();
 }

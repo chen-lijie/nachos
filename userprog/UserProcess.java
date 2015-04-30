@@ -5,6 +5,8 @@ import nachos.threads.*;
 import nachos.userprog.*;
 
 import java.io.EOFException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Encapsulates the state of a user process that is not contained in its user
@@ -25,14 +27,15 @@ public class UserProcess {
 	public UserProcess() {
 		boolean intStatus = Machine.interrupt().disable();
 		processId = processCounter++;
-		fileList = new OpenFile[16];
+		fileList = new OpenFile[MAX_FILE_OPEN];
 		fileList[0] = UserKernel.console.openForReading();
 		fileList[1] = UserKernel.console.openForWriting();
 
-		int numPhysPages = Machine.processor().getNumPhysPages();
-		pageTable = new TranslationEntry[numPhysPages];
-		for (int i = 0; i < numPhysPages; i++)
-			pageTable[i] = new TranslationEntry(i, i, true, false, false, false);
+		// comment them out
+		// int numPhysPages = Machine.processor().getNumPhysPages();
+		// pageTable = new TranslationEntry[numPhysPages];
+		// for (int i = 0; i < numPhysPages; i++)
+		// pageTable[i] = new TranslationEntry(i, i, true, false, false, false);
 
 		Machine.interrupt().restore(intStatus);
 	}
@@ -144,20 +147,49 @@ public class UserProcess {
 	 *            array.
 	 * @return the number of bytes successfully transferred.
 	 */
+
+	// translate the virtual address to physical address, -1 if error occurs
+	private int virtualToPhysical(int vaddr, TranslationEntry entry,
+			boolean write) {
+		if (!entry.valid || entry.readOnly && write)
+			return -1;
+		int offset = vaddr - entry.vpn * pageSize;
+		return entry.ppn * pageSize + offset;
+	}
+
 	public int readVirtualMemory(int vaddr, byte[] data, int offset, int length) {
 		Lib.assertTrue(offset >= 0 && length >= 0
 				&& offset + length <= data.length);
 
+		if (vaddr < 0 || vaddr >= numPages * pageSize)
+			return 0;
+		if (vaddr + length > numPages * pageSize)
+			length = numPages * pageSize - vaddr;
+
 		byte[] memory = Machine.processor().getMemory();
 
-		// for now, just assume that virtual addresses equal physical addresses
-		if (vaddr < 0 || vaddr >= memory.length)
-			return 0;
+		int startAddr = vaddr;
+		int endAddr = vaddr + length - 1;
+		int startPage = Machine.processor().pageFromAddress(startAddr);
+		int endPage = Machine.processor().pageFromAddress(endAddr);
 
-		int amount = Math.min(length, memory.length - vaddr);
-		System.arraycopy(memory, vaddr, data, offset, amount);
+		int total = 0;
 
-		return amount;
+		for (int page = startPage; page <= endPage; ++page) {
+			int start = Math.max(startAddr, page * pageSize);
+			int end = Math.min(endAddr, (page + 1) * pageSize - 1);
+			TranslationEntry entry = pageTable[page];
+
+			int phy = virtualToPhysical(start, entry, false);
+			if (phy < 0)
+				break;
+			System.arraycopy(memory, phy, data, offset + total, end - start + 1);
+
+			total += end - start + 1;
+			entry.used = true;
+		}
+
+		return total;
 	}
 
 	/**
@@ -196,16 +228,36 @@ public class UserProcess {
 		Lib.assertTrue(offset >= 0 && length >= 0
 				&& offset + length <= data.length);
 
+		if (vaddr < 0 || vaddr >= numPages * pageSize)
+			return 0;
+		if (vaddr + length > numPages * pageSize)
+			length = numPages * pageSize - vaddr;
+
 		byte[] memory = Machine.processor().getMemory();
 
-		// for now, just assume that virtual addresses equal physical addresses
-		if (vaddr < 0 || vaddr >= memory.length)
-			return 0;
+		int startAddr = vaddr;
+		int endAddr = vaddr + length - 1;
+		int startPage = Machine.processor().pageFromAddress(startAddr);
+		int endPage = Machine.processor().pageFromAddress(endAddr);
 
-		int amount = Math.min(length, memory.length - vaddr);
-		System.arraycopy(data, offset, memory, vaddr, amount);
+		int total = 0;
 
-		return amount;
+		for (int page = startPage; page <= endPage; ++page) {
+			int start = Math.max(startAddr, page * pageSize);
+			int end = Math.min(endAddr, (page + 1) * pageSize - 1);
+			TranslationEntry entry = pageTable[page];
+
+			int phy = virtualToPhysical(start, entry, true);
+			if (phy < 0)
+				break;
+			System.arraycopy(data, offset + total, memory, phy, end - start + 1);
+
+			total += end - start + 1;
+			entry.used = true;
+			entry.dirty = true;
+		}
+
+		return total;
 	}
 
 	/**
@@ -304,11 +356,24 @@ public class UserProcess {
 	 * @return <tt>true</tt> if the sections were successfully loaded.
 	 */
 	protected boolean loadSections() {
-		if (numPages > Machine.processor().getNumPhysPages()) {
+		UserKernel.pageMutex.acquire();
+		LinkedList<Integer> avaPages = UserKernel.avaPages;
+
+		if (numPages > avaPages.size()) {
+			UserKernel.pageMutex.release();
 			coff.close();
 			Lib.debug(dbgProcess, "\tinsufficient physical memory");
 			return false;
 		}
+
+		// set pageTable
+		pageTable = new TranslationEntry[numPages];
+		for (int i = 0; i < numPages; i++) {
+			int ppn = avaPages.poll();
+			pageTable[i] = new TranslationEntry(i, ppn, true, false, false,
+					false);
+		}
+		UserKernel.pageMutex.release();
 
 		// load sections
 		for (int s = 0; s < coff.getNumSections(); s++) {
@@ -321,7 +386,9 @@ public class UserProcess {
 				int vpn = section.getFirstVPN() + i;
 
 				// for now, just assume virtual addresses=physical addresses
-				section.loadPage(i, vpn);
+				section.loadPage(i, pageTable[vpn].ppn);
+
+				pageTable[vpn].readOnly = section.isReadOnly();
 			}
 		}
 
@@ -332,6 +399,20 @@ public class UserProcess {
 	 * Release any resources allocated by <tt>loadSections()</tt>.
 	 */
 	protected void unloadSections() {
+		UserKernel.pageMutex.acquire();
+		LinkedList<Integer> avaPages = UserKernel.avaPages;
+
+		for (int i = 0; i < numPages; i++) {
+			avaPages.add(pageTable[i].ppn);
+		}
+
+		UserKernel.pageMutex.release();
+
+		// close all the file that it opened
+		for (int i = 0; i < fileList.length; i++) {
+			if (fileList[i] != null)
+				handleClose(i);
+		}
 	}
 
 	/**
@@ -378,7 +459,7 @@ public class UserProcess {
 		if (file == null)
 			return -1;
 		int idx = -1;
-		for (int i = 0; i < 16; i++) {
+		for (int i = 0; i < fileList.length; i++) {
 			if (fileList[i] == null) {
 				idx = i;
 				break;
@@ -402,7 +483,7 @@ public class UserProcess {
 		if (file == null)
 			return -1;
 		int idx = -1;
-		for (int i = 0; i < 16; i++) {
+		for (int i = 0; i < fileList.length; i++) {
 			if (fileList[i] == null) {
 				idx = i;
 				break;
@@ -420,7 +501,7 @@ public class UserProcess {
 	}
 
 	private int handleClose(int idx) {
-		if (idx < 0 || idx >= 16)
+		if (idx < 0 || idx >= fileList.length)
 			return -1;
 		OpenFile openFile = fileList[idx];
 		String name = openFile.getName();
@@ -433,7 +514,7 @@ public class UserProcess {
 	}
 
 	private int handleRead(int idx, int address, int count) {
-		if (idx < 0 || idx >= 16 || address < 0 || count < 0)
+		if (idx < 0 || idx >= fileList.length || address < 0 || count < 0)
 			return -1;
 		OpenFile openFile = fileList[idx];
 		if (openFile == null)
@@ -460,7 +541,7 @@ public class UserProcess {
 	}
 
 	private int handleWrite(int idx, int address, int count) {
-		if (idx < 0 || idx >= 16 || address < 0 || count < 0)
+		if (idx < 0 || idx >= fileList.length || address < 0 || count < 0)
 			return -1;
 		OpenFile openFile = fileList[idx];
 		if (openFile == null)
@@ -630,6 +711,7 @@ public class UserProcess {
 	private static final char dbgProcess = 'a';
 	private static final int MAX_BUFFER_SIZE = 1 << 15;
 	private static final byte[] BUFFER = new byte[MAX_BUFFER_SIZE];
+	private static final int MAX_FILE_OPEN = 16;
 
 	protected static int processCounter = 0;
 }
