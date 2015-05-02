@@ -1,0 +1,799 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings, xcolor}
+\usepackage{graphicx,float,wrapfig}
+\newcommand{\Class}{Operation System}
+\newcommand{\ClassInstructor}{Wei Xu}
+\newcommand{\Break}{\State \textbf{break} }
+
+% Homework Specific Information. Change it to your own
+
+% In case you need to adjust margins:
+\topmargin=-0.45in      %
+\evensidemargin=0in     %
+\oddsidemargin=0in      %
+\textwidth=6.5in        %
+\textheight=9.0in       %
+\headsep=0.25in         %
+
+% Setup the header and footer                                 %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Some tools
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make title
+\title{Project 2 - Initial Design Document}
+\author{Chen Lijie\\ \and
+	Fan Haoqiang\\ \and
+	Bi Ke\\ }
+\date{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+	\maketitle
+	\section{Our git Repository}
+	\texttt{https://github.com/wjmzbmr/nachos}
+	\section{Implementation of System calls for File System}
+	\subsection{A simple illustration}
+	Since in class FileSystem, we only have method open() and remove(), which means we need to implement unlink on our own by keeping a counter for each file opened.
+	\subsection{Correctness Invariants}
+	\begin{itemize}
+		\item Bullet-proof those system call so that user error won't break the kernel.
+		\item Halt can only be called by the root process.
+		\item The functionality and behavior of those call should match the what have been documented in syscall.h
+		\item A user process should be able to open 16 file concurrently.
+	\end{itemize}
+	\subsection{Declaration}
+	\subsubsection*{UserProcess}
+	\begin{itemize}
+		\item A static member processCounter, keeps the number of each process.
+		\item A final member maxBuf, which is the maximum buffer size per read.
+		\item A member processId.
+		\item An array fileList of OpenFile with size 16 to store the opened file.
+		\item Modification in UserProcess(), which set file Descriptor 0 and 1 to stdin and stdout.
+		\item Modification in handleHalt()
+		\item New methods: handleCreate(), handleOpen(), handleRead(), handleWrite(), handleClose(), handleUnlink(). With specified functionality in the task.
+	\end{itemize}
+	\subsubsection*{UserKernel}
+	\begin{itemize}
+		\item A class FileManager, which keeps a counter for each file and whether it should be unlinked.
+		\item A static subclass of FileManager, FileRecord, with two fields: counter and unlinked.
+		\item A HashMap map in FileManager, map the file's name to the FileRecord.
+		\item A Lock mutex in FileManager, ensuring that only one process can access to it.
+		\item method open(), create(), unlink() and close() in FileManager, which will change the information for each file.
+	\end{itemize}
+	\subsection{Description}
+	The pseudo code follows:
+	\subsubsection*{UserProcess}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {UserProcess()}{}
+			\State Disable Interruption
+			\State processId $\leftarrow$ processCounter++
+			\State fileList $\leftarrow$ new OpenFile[16]
+			\State fileList[0] $\leftarrow$ UserKernel.console.openForReading()
+			\State fileList[1] $\leftarrow$ UserKernel.console.openForWriting()
+			\State Restore Interruption
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {handleHalt()}{}
+			\If{processId != 0}
+			\Return -1
+			\EndIf
+			\State Machine.halt()
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {handleCreate(adr)}{}
+			\State file $\leftarrow$ readVirtualMemoryString(adr,256)
+			\If{file == null}
+			\Return -1
+			\EndIf
+			\State idx $\leftarrow$ 0
+			\While{idx $<$ 16 AND fileList[idx] != null}
+			\State idx++
+			\EndWhile
+			\If{idx == 16}
+			\Return -1
+			\EndIf
+			\If{NOT UserKernel.FileManager.create(file)}
+			\Return -1
+			\EndIf
+			\State openFile $\leftarrow$ UserKernel.fileSystem.open(file,true)
+			\If{openFile == null}
+			\State \Return -1
+			\EndIf
+			\State fileList[idx] $\leftarrow$ openFile
+			\State \Return idx
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {handleRead(idx,adr,buf)}{}
+			\If{idx is invalid OR adr is valid OR fileList[idx] is null}
+			\State \Return -1
+			\EndIf
+			\State file $\leftarrow$ fileList[idx]
+			\While{buf $>$ 0}
+			\State toRead $\leftarrow$ min(buf,maxBuf)
+			\State read toRead bytes from file, and write it to adr
+			\If{if in above an error occur}
+			\State \Return -1
+			\EndIf
+			\State buf $\leftarrow$ buf - toRead
+			\EndWhile
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	%QUESTION: the behavior of open and create when unlinked
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleOpen()}{}
+			\State file $\leftarrow$ readVirtualMemoryString(adr,256)
+			\If{file == null}
+			\State \Return -1
+			\EndIf
+			\State idx $\leftarrow$ 0
+			\While{idx $<$ 16 AND fileList[idx] != null}
+			\State idx++
+			\EndWhile
+			\If{idx == 16}
+			\State \Return -1
+			\EndIf
+			\If{NOT UserKernel.FileManager.open(file)}
+			\State \Return -1
+			\EndIf
+			\State openFile $\leftarrow$ UserKernel.fileSystem.open(file,false)
+			\If{openFile == null}
+			\State \Return -1
+			\EndIf
+			\State fileList[idx] $\leftarrow$ openFile
+			\State \Return idx
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {handleWrite(idx,adr,buf)}{}
+			\If{idx is invalid OR adr is valid OR fileList[idx] is null}
+			\State \Return -1
+			\EndIf
+			\State file $\leftarrow$ fileList[idx]
+			\While{buf $>$ 0}
+			\State toRead $\leftarrow$ min(buf,maxBuf)
+			\State read toRead bytes from adr, and write it to the file
+			\If{if in above an error occur}
+			\State \Return -1
+			\EndIf
+			\State buf $\leftarrow$ buf - toRead
+			\EndWhile
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleClose(idx)}{}
+			\If{idx is invalid}
+			\State \Return -1
+			\EndIf
+			\State file $\leftarrow$ fileList[idx]
+			\State name $\leftarrow$ file.getName()
+			\State file.close()
+			\State fileList[idx] $\leftarrow$ null
+			\If{UserKernel.FileManager.close(name)}
+			\State \Return 0
+			\Else
+			\State \Return -1
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleUnlink(adr)}{}
+			\If{adr is invalid}
+			\State \Return -1
+			\EndIf
+			\State file $\leftarrow$ readVirtualMemoryString(adr,256)
+			\If{file == null}
+			\State \Return -1
+			\EndIf
+			\If{UserKernel.FileManager.unlink(file)}
+			\State \Return 0
+			\EndIf
+			\State \Return -1
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\subsubsection*{UserKernel}
+	
+	In class FileManager
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {open(file)}{}
+			\State mutex.acquire()
+			\If{NOT map.containsKey(file)}
+			\State mutex.release()
+			\State \Return false
+			\Else
+			\State record $\leftarrow$ map.get(file)
+			\If{record.unlinked}
+			\State mutex.release()
+			\State \Return false
+			\EndIf
+			\State record.counter++
+			\State mutex.release()
+			\State \Return true
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {close(file)}{}
+			\State mutex.acquire()
+			\If{NOT map.containsKey(file)}
+			\State mutex.release()
+			\State \Return false
+			\Else
+			\State record $\leftarrow$ map.get(file)
+			\State record.counter$--$
+			\If{record.counter == 0 AND record.unlinked}
+			\State UserKernel.fileSystem.remove(file)
+			\State map.remove(file)
+			\EndIf
+			\State mutex.release()
+			\State \Return true
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {FileRecord()}{}
+			\State unlinked $\leftarrow$ false
+			\State counter $\leftarrow$ 0
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {FileManager()}{}
+			\State map $\leftarrow$ new HashMap$<$String,FileRecord$>$()
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {create(file)}{}
+			\State mutex.acquire()
+			\If{NOT map.containsKey(file)}
+			\State record $\leftarrow$ new FileRecord()
+			\State record.counter++
+			\State map.put(file,record)
+			\State mutex.release()
+			\State \Return true
+			\Else
+			\State record $\leftarrow$ map.get(file)
+			\If{record.unlinked}
+			\State mutex.release()
+			\State \Return false
+			\EndIf
+			\State record.counter++
+			\State mutex.release()
+			\State \Return true
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {unlink(file)}{}
+			\State mutex.acquire()
+			\If{NOT map.containsKey(file)}
+			\State mutex.release()
+			\State \Return false
+			\Else
+			\State record $\leftarrow$ map.get(file)
+			\If{record.counter == 0}
+			\State UserKernel.fileSystem.remove(file)
+			\State map.remove(file)
+			\Else
+			\State record.unlinked $\leftarrow$ true
+			\EndIf
+			\State mutex.release()
+			\State \Return true
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\subsection{Description of Tests}
+	\subsection*{Standard tests}
+	Do some standard tests to make sure our implementation works:
+	
+	\begin{itemize}
+		\item open a file, read something from it, then close it.
+		\item create a file, write some to it, then close it.
+		\item make two process open the same file, then unlink it, then both process close it.
+		\item unlink a file, and try to open it before it finally closed.
+	\end{itemize}
+	\subsection*{Bullet-proof tests}
+	Do some special case test to make sure our implementation bullet-proof those user-level mistakes.
+	
+	\begin{itemize}
+		\item test methods by some invalid parameters.
+		\item write, read, close, unlink some files that doesn't exist.
+	\end{itemize}
+
+	\section{Implementation of Support for Multiprogramming}
+	\subsection{A simple illustration}
+	Use a double linked list to maintain the currently available pages. So that we can make use of them efficiently.
+	\subsection{Correctness Invariants}
+	\begin{itemize}
+		\item writeVirtualMemory() and readVirtualMemory() should return number of bits written or read if an error occurs.
+		\item The page corresponding to COFF sections should be read-only.
+		\item The memory should be efficiently used, that is, whenever the number of total available pages exceeds the pages a user process needs, that requirement should be satisfied.
+	\end{itemize}
+	\subsection{Declaration}
+	\subsubsection*{UserKernel}
+	\begin{itemize}
+		\item A linked list of Integer avaPages, which stores the currently available pages.
+		\item A lock pagesMutex, which prevents multiple process from using the avaPages.
+	\end{itemize}
+	\subsubsection*{UserProcess}
+	\begin{itemize}
+		\item Modifications in readVirtualMemory() and writeVirtualMemory().
+		\item Modifications in loadSections()
+		\item Modifications in unloadSections()
+		\item Modifications in the constructor of UserKernel, which initialize the list of avaPages.
+	\end{itemize}
+	
+	\subsection{Description}
+	The pseudo code follows:
+	\subsubsection*{UserKernel}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {UserKernel()}{}
+			\State pagesMutex $\leftarrow$ new Lock()
+			\While{avaPages.size() $<$ numPhypages}
+			\State avaPages.add(new page)
+			\EndWhile
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\subsubsection*{UserProcess}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {readVirtualMemory(vaddr,data,offset,length)}{}
+			\If{vaddr is not valid}
+			\State \Return 0
+			\EndIf
+			\State length $\leftarrow$ min(length, numPages * pageSize - vaddr)
+			\State total $\leftarrow$ 0
+			\State begin $\leftarrow$ Machine.process.pageFromAddress(vaddr)
+			\State end $\leftarrow$ Machine.process.pageFromAddress(vaddr + length - 1)
+			\For{page $\leftarrow$ begin to end}
+			\If{page is invalid}
+			\State \Return total
+			\EndIf
+			\State read the corresponding bytes in page to data[offset..]
+			\State update total and offset
+			\EndFor
+			\State \Return total
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {writeVirtualMemory(vaddr,data,offset,length)}{}
+			\If{vaddr is not valid}
+			\State \Return 0
+			\EndIf
+			\State length $\leftarrow$ min(length, numPages * pageSize - vaddr)
+			\State total $\leftarrow$ 0
+			\State begin $\leftarrow$ Machine.process.pageFromAddress(vaddr)
+			\State end $\leftarrow$ Machine.process.pageFromAddress(vaddr + length - 1)
+			\For{page $\leftarrow$ begin to end}
+			\If{page is invalid}
+			\State \Return total
+			\EndIf
+			\State write the corresponding bytes in data[offset..] to the page
+			\State update total and offset
+			\EndFor
+			\State \Return total
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {loadSections()}{}
+			\State UserKernel.pagesMutex.acquire()
+			\If{the avaPages.size() $<$ numPages}
+			\State UserKernel.pagesMutex.release()
+			\Return false
+			\EndIf
+			\State pageTable $\leftarrow$ new TranslationEntry[numPages]
+			\For{i $\leftarrow$ 0 to numPages - 1}
+			\State page $\leftarrow$ avaPages.poll()
+			\State pageTable[i] $\leftarrow$ new TranslationEntry(i,page,true,false,false,false)
+			\EndFor
+			\State UserKernel.pagesMutex.release()
+			\State ...
+			\State vpn $\leftarrow$ section.getFirstVPN()+i;
+			\State pageTable[vpn].readOnly $\leftarrow$ section.isReadOnly()
+			\State section.loadPage(i, vpn);
+			\State ..
+			\State \Return true
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+    \begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {unloadSections()}{}
+			\State UserKernel.pagesMutex.acquire()
+			\State add all pages in pageTable to avaPages
+			\State UserKernel.pagesMutex.release()
+			\State close all those files opened in fileList
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\subsection{Description of Tests}
+	Do some standard tests to make sure our implementation works:
+	
+	\begin{itemize}
+		\item call writeVirtualMemory() and readVirtualMemory(), check whether they has the corresponding functionality.
+		\item Test loading and unloading a .coff file.
+	\end{itemize}
+	
+	\subsection*{Bullet-proof tests}
+	Do some special case test to make sure our implementation bullet-proof those user-level mistakes.
+	
+	\begin{itemize}
+		\item Call those functional by some invalid parameters.
+		\item Try to require a huge memory which exceeds the entire memory of the machine.
+	\end{itemize}
+	\section{Implementation of System calls exec, join and exit}
+	\subsection{A simple illustration}
+	In this architecture, we only have one thread for each process, which will simplify things a lot.
+	\subsection{Correctness Invariants}
+	\begin{itemize}
+		\item in exit call, the last caller should terminate the machine.
+		\item in exit call, it clean up the space used by the process.
+		\item in joint call, a process can only be joined to its children.
+		\item process ID should be unique for every process.
+		\item Bullet-proof those system call so that user-level mistakes won't break the kernel.
+	\end{itemize}
+	\subsection{Declaration}
+	\subsubsection*{UserProcess}
+	\begin{itemize}
+		\item A static member processCounter(already defined in Task I).
+		\item A member thread of type UThread, denoting the thread of the current process.
+		\item A member parent of type UserProcess, denoting the parent of the current thread.
+		\item A member childList of type List$<$UserProcess$>$, denoting the children threads of the current thread.
+		\item A member mapExitStatus of type Map$<$Integer,Integer$>$, which map the children process Id to its exit Status. And a lock mapExitStatusLock, we prevent atomic access for this map.
+		
+		\item Modification in UserProcess().
+		
+		\item Methods handleJoin(),handleExec(),handleExit(), with corresponding functionality.
+	\end{itemize}
+	\subsection{Description}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {UserProcess()}{}
+			\State Disable interruption.
+			\State processId $\leftarrow$ processCounter.
+			\State processCounter ++.
+			\State Enable interruption.
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleExit(status)}{}
+			\State Disable interruption.
+			\State unLoadSections()
+			\State set the parent to null for every process in childList
+			\If{parent != null}
+			\State parent.mapExitStatus.put(processId,status)
+			\EndIf
+			\If{processId == 0}
+			\State terminate the Kernel.
+			\Else
+			\State terminate current thread.
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleJoin(pid,addr)}{}
+			\State child $\leftarrow$ the process in childList with processId pid
+			\If{no such process in above}
+			\State \Return -1
+			\EndIf
+			\If{child.thread !=null}
+			\State child.thread.join()
+			\EndIf
+			\State child.parent $\leftarrow$ null
+			\State remove child from childList
+			\State exitStatusLock.acquire()
+			\State status $\leftarrow$
+		 mapExitStatus.get(child.processId)
+		 \State mapExitStatus.remove(child.processId)
+		 \State exitStatusLock.release()
+		    \If{status is an abnormally exit}
+		    \State \Return 0
+		    \EndIf
+		    %What if I can't write to addr?
+		    \State write status to addr
+		    \State \Return 1
+		    \EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {handleExec(addr,argc,argv)}{}
+			\If{addr or argc is not valid}
+			\State \Return -1
+			\EndIf
+			\State file $\leftarrow$ readVirtualMemoryString(addr,256)
+			\If{file == null OR file is not valid}
+			\State \Return -1
+			\EndIf
+			\State arguments $\leftarrow$ parse argc argument for argv.
+			\If{the above parsing failed}
+			\State \Return -1
+			\EndIf
+			\State child $\leftarrow$ new UserProcess
+			\If{child.execute(file,arguments)}
+			\State child.parent $\leftarrow$ this
+			\State childList.add(child)
+			\State \Return child.processId
+			\Else
+			\State \Return -1
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\subsection{Description of Tests}
+	\begin{itemize}
+		\item Let a process call exit.
+		\item Let a process join to another one, check the perform order.
+		\item Let a process join to a thread which is not its children, see whether an error occurs.
+		\item Create many threads, see that if their id is unique.
+	\end{itemize}
+	\section{Implementation of LotteryScheduler}
+	\subsection{A simple illustration}
+	Indeed we don't need to change much details from our previous implementation of priority Scheduler.
+	
+	We only need to change the update for the priority donation and the way to pick the next thread.
+	\subsection{Correctness Invariants}
+	\begin{itemize}
+		\item Those method should be atomic.
+		\item The threads are chosen with a probability proportional to the total number of tickets holding by itself and all threads waiting on the resources it holds.
+	\end{itemize}
+	
+	\subsection{Declaration}
+	\subsubsection{LotteryScheduler}
+	
+	\begin{itemize}
+		\item Implementation of getPriority(), setPriority() and getEffectivePriority().
+	\end{itemize}
+	
+	\subsubsection{Kthread}
+	
+	\begin{itemize}
+		\item Notice that the original Kthread Object has a member schedulingState, which can be used to record its scheduling state.
+	\end{itemize}
+	\subsubsection{PriorityThreadQueue}
+	
+	\begin{itemize}
+		\item Make a subclass of ThreadQueue named LotteryThreadQueue. Which is supposed to maintain the threads waiting for this resource.
+		
+		\item A member variable resourceHolder, which points to the thread which holds the resource.
+		
+		\item A member variable sumPriority, which denoting the sum effective priority in the waiterQueue, set as 0 if waiters is empty.
+		
+		\item A binary search tree of SchedulingState waiters contains all the waiting threads.
+		
+		\item implementation of nextThread(), acquire(), waitForAccess().
+	\end{itemize}
+	
+	\subsubsection{SchedulingState}
+	
+	\begin{itemize}
+		\item member variables thread, priority, effectivePriority, waitingResource which corresponding to the thread it represents, the priority of that thread, the effective priority of that thread, and the resource this thread is waiting for.
+		
+		\item (modification)A member variable resources implemented by a binary search tree, which holds all the resources acquired by this thread.
+	\end{itemize}
+	\subsection{Description}
+	
+	\subsubsection{Scheduler}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {getPriority(thread)}{}
+			\State \Return thread.schedulingState.priority
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {getEffectivePriority(thread)}{}
+			\State \Return thread.schedulingState.effectivePriority
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {setPriority(thread, p)}{}
+			\If{p $<$ priorityMinimum OR p $>$ priorityMaximum}
+			\State \Return
+			\EndIf
+			\State thread.schedulingState.setPriority(p)
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\subsubsection{LotteryThreadQueue}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {Initialize()}{}
+			\State resourceHolder $\leftarrow$ null;
+			\State waiters $\leftarrow$ new empty TreeSet.
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {update(tmp)}{}
+			\If{tmp != sumPriority}
+			\If{resourceHolder != null}
+			\State resourceHolder.updateResource(this,maxPriority)
+			\Else
+			\State sumPriority $\leftarrow$ tmp
+			\EndIf
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {updateWaiter(state, EP)}{}
+			\State tmp $\leftarrow$ sumPriority
+			\State waiters.remove(state)
+			\State tmp $\leftarrow$ tmp - state.effectivePriority
+			\State state.effectivePriority $\leftarrow$ EP
+			\State watiers.add(state)
+			\State tmp $\leftarrow$ tmp + state.effectivePriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {waitForAccess(thread)}{}
+			\State state $\leftarrow$ thread.schedulingState
+			\State tmp $\leftarrow$ sumPriority
+			\State state.waitingResource $\leftarrow$ this
+			\State waiterQueue.add(state)
+			\State tmp $\leftarrow$ tmp + state.effectivePriority
+			\State update()
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {acquire(thread)}{}
+			\State state $\leftarrow$ thread.schedulingState
+			\State resourceHolder $\leftarrow$ state
+			\State state.addResource(this)
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {pickNextThread()}{}
+			\State rnd $\leftarrow$ random number form 0 to sumPriority-1
+			\For{i in waiters}
+			\State rnd $\leftarrow$ rnd - i.effectivePriority
+			\If{rnd $<$ 0}
+			\State \Return i.thread
+			\EndIf
+			\EndFor
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {nextThread()}{}
+			\If{resourceHolder != null}
+			\State resourceHolder.removeResource(this)
+			\State resourceHolder $\leftarrow$ null
+			\EndIf
+			\State state $\leftarrow$ pickNextThread()
+			\If{state == null}
+			\State \Return null
+			\EndIf
+			\State thread $\leftarrow$ state.thread
+			\State update()
+			\State state.waitingResource = null
+			\State state.addResource(this);
+			\Return thread
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\subsubsection{SchedulingState}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {Initialize()}{}
+			\State priority, effectivePriority $\leftarrow$ priorityDefault
+			\State resources $\leftarrow$ empty TreeSet
+			\State waitingResource $\leftarrow$ null
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {update(tmp)}{}
+			\If{tmp != effectivePriority}
+			\If{waitingResource != null}
+			\State waitingResource.updateWaiter(this,tmp)
+			\Else
+			\State effectivePriority $\leftarrow$ tmp
+			\EndIf
+			\EndIf
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {setPriority(p)}{}
+			\State tmp $\leftarrow$ effectivePriority
+			\State tmp $\leftarrow$ tmp - priority
+			\State priority $\leftarrow$ p
+			\State tmp $\leftarrow$ tmp + priority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {updateResource(res, maxP)}{}
+			\State resources.remove(res)
+			\State tmp $\leftarrow$ effectivePriority
+			\State tmp $\leftarrow$ tmp - res.sumPriority
+			\State res.maxPriority $\leftarrow$ maxP
+			\State resources.add(res)
+			\State tmp $\leftarrow$ tmp + res.sumPriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {addResource(res)}{}
+			\State tmp $\leftarrow$ effectivePriority
+			\State resources.add(res)
+			\State tmp $\leftarrow$ tmp + res.sumPriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+		\begin{algorithmic}
+			\Procedure {removeResource(res)}{}
+			\State tmp $\leftarrow$ effectivePriority
+			\State resources.remove(res)
+			\State tmp $\leftarrow$ tmp - res.sumPriority
+			\State update(tmp)
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\subsection{Description of Tests}
+	\subsection*{Random Test}
+	
+	Set several threads such that the $i$-th has priority $10^{i}$.
+	
+	Then there is a very big chance that they are performed in the decreasing order of priority. Run it multiple times to see if it the cases.
+	
+	\subsection*{Priority Donation Test}
+	
+	Check whether priority donation works by set up a condition, and see when a process release that condition, whether or nor its priority is recovered.
+\end{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
