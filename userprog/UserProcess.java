@@ -54,6 +54,7 @@ public class UserProcess {
 	 */
 	public static UserProcess newUserProcess() {
 		return (UserProcess) Lib.constructObject(Machine.getProcessClassName());
+		//return new UserProcess();
 	}
 
 	/**

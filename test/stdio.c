@@ -4,7 +4,8 @@
 int fgetc(int fd) {
     unsigned char c;
 
-    while (read(fd, &c, 1) != 1);
+    if (read(fd, &c, 1) != 1)
+		return -1;
 
     return c;
 }
