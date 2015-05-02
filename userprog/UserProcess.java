@@ -70,6 +70,7 @@ public class UserProcess {
 		if (!load(name, args))
 			return false;
 
+		++activeProcess;
 		// save the thread here
 		thread = new UThread(this);
 		thread.setName(name).fork();
@@ -135,7 +136,7 @@ public class UserProcess {
 	public int readVirtualMemory(int vaddr, byte[] data) {
 		return readVirtualMemory(vaddr, data, 0, data.length);
 	}
-	
+
 	// translate the virtual address to physical address, -1 if error occurs
 	private int virtualToPhysical(int vaddr, TranslationEntry entry,
 			boolean write) {
@@ -170,11 +171,11 @@ public class UserProcess {
 
 		if (vaddr < 0 || vaddr >= numPages * pageSize)
 			return 0;
-	
+
 		if (vaddr + length > numPages * pageSize)
 			length = numPages * pageSize - vaddr;
-			
-		//special check for length==0
+
+		// special check for length==0
 		if (length == 0)
 			return 0;
 
@@ -244,8 +245,8 @@ public class UserProcess {
 			return 0;
 		if (vaddr + length > numPages * pageSize)
 			length = numPages * pageSize - vaddr;
-		
-		//special check for length==0
+
+		// special check for length==0
 		if (length == 0)
 			return 0;
 
@@ -458,7 +459,7 @@ public class UserProcess {
 	 */
 	private int handleHalt() {
 
-		if (processId != 0)
+		if (processId != ROOT_PROCESS)
 			return -1;
 
 		Machine.halt();
@@ -548,7 +549,7 @@ public class UserProcess {
 				return -1;
 			total += got;
 			address += got;
-			
+
 			count -= got;
 			if (got < read)
 				break;
@@ -577,7 +578,7 @@ public class UserProcess {
 				return -1;
 			total += got;
 			address += got;
-			
+
 			count -= got;
 			if (wrote < read)
 				break;
@@ -610,7 +611,9 @@ public class UserProcess {
 			parent.exitStatusMap.put(processId, status);
 		}
 
-		if (processId == 0)
+		activeProcess--;
+
+		if (activeProcess == 0)
 			Kernel.kernel.terminate();
 		else
 			UThread.finish();
@@ -629,7 +632,8 @@ public class UserProcess {
 			return -1;
 		if (child.thread != null)
 			child.thread.join();
-		child.parent = null; //this line seems redundant; no one is going to use it from now
+		child.parent = null; // this line seems redundant; no one is going to
+								// use it from now
 		childList.remove(child);
 		mapLock.acquire();
 		if (!exitStatusMap.containsKey(child.processId)) {
@@ -652,8 +656,8 @@ public class UserProcess {
 	}
 
 	private int handleExec(int addr, int argc, int argv) {
-		//makes sure that argc is not ridiculously long
-		if (addr < 0 || argc < 0 || argv < 0 || argc>65536)
+		// makes sure that argc is not ridiculously long
+		if (addr < 0 || argc < 0 || argv < 0 || argc > 65536)
 			return -1;
 		String file = readVirtualMemoryString(addr, 256);
 		if (file != null || !file.toLowerCase().endsWith(".coff"))
@@ -674,8 +678,8 @@ public class UserProcess {
 		}
 
 		UserProcess child = UserProcess.newUserProcess();
-		//Set the child's parent pointer first to avoid race condition
-		child.parent=this;
+		// Set the child's parent pointer first to avoid race condition
+		child.parent = this;
 		if (child.execute(file, arguments)) {
 			childList.add(child);
 			return child.processId;
@@ -849,5 +853,9 @@ public class UserProcess {
 	private static final int UNEXPECTED_EXCEPTION = -1234;
 	private static final int UNKNOWN_SYSTEM_CALL = -1235;
 
-	protected static int processCounter = 0;
+	private static int processCounter = 1;
+	private static final int ROOT_PROCESS = 1;
+
+	/** The number of process that is active */
+	protected static int activeProcess = 0;
 }
