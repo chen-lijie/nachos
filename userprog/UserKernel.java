@@ -35,6 +35,10 @@ public class UserKernel extends ThreadedKernel {
 			}
 		});
 
+		fileManager = new FileManager();
+		pageMutex = new Lock();
+		avaPages = new LinkedList<Integer>();
+
 		pageMutex.acquire();
 
 		int numPages = Machine.processor().getNumPhysPages();
@@ -205,7 +209,7 @@ public class UserKernel extends ThreadedKernel {
 		}
 	}
 
-	protected static FileManager fileManager = new FileManager();
+	protected static FileManager fileManager;
 
 	/**
 	 * Terminate this kernel. Never returns.
@@ -220,6 +224,6 @@ public class UserKernel extends ThreadedKernel {
 	// dummy variables to make javac smarter
 	private static Coff dummy1 = null;
 
-	protected static LinkedList<Integer> avaPages = new LinkedList<Integer>();
-	protected static Lock pageMutex = new Lock();
+	protected static LinkedList<Integer> avaPages;
+	protected static Lock pageMutex;
 }
