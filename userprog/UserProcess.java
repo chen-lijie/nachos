@@ -135,6 +135,15 @@ public class UserProcess {
 	public int readVirtualMemory(int vaddr, byte[] data) {
 		return readVirtualMemory(vaddr, data, 0, data.length);
 	}
+	
+	// translate the virtual address to physical address, -1 if error occurs
+	private int virtualToPhysical(int vaddr, TranslationEntry entry,
+			boolean write) {
+		if (!entry.valid || entry.readOnly && write)
+			return -1;
+		int offset = vaddr - entry.vpn * pageSize;
+		return entry.ppn * pageSize + offset;
+	}
 
 	/**
 	 * Transfer data from this process's virtual memory to the specified array.
@@ -155,23 +164,19 @@ public class UserProcess {
 	 * @return the number of bytes successfully transferred.
 	 */
 
-	// translate the virtual address to physical address, -1 if error occurs
-	private int virtualToPhysical(int vaddr, TranslationEntry entry,
-			boolean write) {
-		if (!entry.valid || entry.readOnly && write)
-			return -1;
-		int offset = vaddr - entry.vpn * pageSize;
-		return entry.ppn * pageSize + offset;
-	}
-
 	public int readVirtualMemory(int vaddr, byte[] data, int offset, int length) {
 		Lib.assertTrue(offset >= 0 && length >= 0
 				&& offset + length <= data.length);
 
 		if (vaddr < 0 || vaddr >= numPages * pageSize)
 			return 0;
+	
 		if (vaddr + length > numPages * pageSize)
 			length = numPages * pageSize - vaddr;
+			
+		//special check for length==0
+		if (length == 0)
+			return 0;
 
 		byte[] memory = Machine.processor().getMemory();
 
@@ -239,6 +244,10 @@ public class UserProcess {
 			return 0;
 		if (vaddr + length > numPages * pageSize)
 			length = numPages * pageSize - vaddr;
+		
+		//special check for length==0
+		if (length == 0)
+			return 0;
 
 		byte[] memory = Machine.processor().getMemory();
 
@@ -392,7 +401,6 @@ public class UserProcess {
 			for (int i = 0; i < section.getLength(); i++) {
 				int vpn = section.getFirstVPN() + i;
 
-				// for now, just assume virtual addresses=physical addresses
 				section.loadPage(i, pageTable[vpn].ppn);
 
 				pageTable[vpn].readOnly = section.isReadOnly();
@@ -540,6 +548,8 @@ public class UserProcess {
 				return -1;
 			total += got;
 			address += got;
+			
+			count -= got;
 			if (got < read)
 				break;
 		}
@@ -558,7 +568,7 @@ public class UserProcess {
 			int read = Math.min(count, MAX_BUFFER_SIZE);
 			int got = readVirtualMemory(address, BUFFER, 0, read);
 
-			// It is an error if we can read enough bytes from address
+			// It is an error if we cannot read enough bytes from address
 			if (got < read)
 				return -1;
 
@@ -567,6 +577,8 @@ public class UserProcess {
 				return -1;
 			total += got;
 			address += got;
+			
+			count -= got;
 			if (wrote < read)
 				break;
 		}
@@ -617,7 +629,7 @@ public class UserProcess {
 			return -1;
 		if (child.thread != null)
 			child.thread.join();
-		child.parent = null;
+		child.parent = null; //this line seems redundant; no one is going to use it from now
 		childList.remove(child);
 		mapLock.acquire();
 		if (!exitStatusMap.containsKey(child.processId)) {
@@ -640,7 +652,8 @@ public class UserProcess {
 	}
 
 	private int handleExec(int addr, int argc, int argv) {
-		if (addr < 0 || argc < 0 || argv < 0)
+		//makes sure that argc is not ridiculously long
+		if (addr < 0 || argc < 0 || argv < 0 || argc>65536)
 			return -1;
 		String file = readVirtualMemoryString(addr, 256);
 		if (file != null || !file.toLowerCase().endsWith(".coff"))
@@ -661,8 +674,9 @@ public class UserProcess {
 		}
 
 		UserProcess child = UserProcess.newUserProcess();
+		//Set the child's parent pointer first to avoid race condition
+		child.parent=this;
 		if (child.execute(file, arguments)) {
-			child.parent = this;
 			childList.add(child);
 			return child.processId;
 		}
