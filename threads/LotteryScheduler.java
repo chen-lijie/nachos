@@ -39,7 +39,7 @@ public class LotteryScheduler extends PriorityScheduler {
 	 * @return a new priority thread queue.
 	 */
 	public ThreadQueue newThreadQueue(boolean transferPriority) {
-		ThreadQueue queue=new LotteryQueue(transferPriority);
+		ThreadQueue queue = new LotteryQueue(transferPriority);
 		return queue;
 	}
 
@@ -130,6 +130,7 @@ public class LotteryScheduler extends PriorityScheduler {
 			this.transferPriority = transferPriority;
 			// I did't implement the case for transferPriority is false since it
 			// is not required.
+			/** This cause a big bug ! I regret for my laziness */
 		}
 
 		public void waitForAccess(KThread thread) {
@@ -194,7 +195,6 @@ public class LotteryScheduler extends PriorityScheduler {
 		}
 
 		private void update(int tmp) {
-			
 			if (tmp != sumPriority) {
 				if (resourceHolder != null)
 					resourceHolder.updateResource(this, tmp);
@@ -220,6 +220,13 @@ public class LotteryScheduler extends PriorityScheduler {
 
 		public int getSumPriority() {
 			return sumPriority;
+		}
+
+		public int getDonatingPriority() {
+			if (transferPriority)
+				return sumPriority;
+			else
+				return 0;
 		}
 
 		public void updateWaiter(ThreadState threadState, int effectivePriority) {
@@ -300,23 +307,23 @@ public class LotteryScheduler extends PriorityScheduler {
 		}
 
 		protected void updateResource(LotteryQueue resource, int sumPriority) {
-			int tmp = effectivePriority - resource.sumPriority;
+			int tmp = effectivePriority - resource.getDonatingPriority();
 			resources.remove(resource);
 			resource.setSumPriority(sumPriority);
 			resources.add(resource);
-			tmp += resource.sumPriority;
+			tmp += resource.getDonatingPriority();
 			update(tmp);
 		}
 
 		protected void addResource(LotteryQueue resource) {
 			resources.add(resource);
-			int tmp = effectivePriority + resource.sumPriority;
+			int tmp = effectivePriority + resource.getDonatingPriority();
 			update(tmp);
 		}
 
 		protected void removeResource(LotteryQueue resource) {
 			resources.remove(resource);
-			int tmp = effectivePriority - resource.sumPriority;
+			int tmp = effectivePriority - resource.getDonatingPriority();
 			update(tmp);
 		}
 
@@ -452,7 +459,7 @@ public class LotteryScheduler extends PriorityScheduler {
 
 	// explicit test of priority inversion
 	public static void selfTest3() {
-		
+
 		final Lock mutex = new Lock();
 		boolean intStatus = Machine.interrupt().disable();
 		KThread t = new KThread(new Runnable() {
@@ -462,8 +469,8 @@ public class LotteryScheduler extends PriorityScheduler {
 				int s = 0;
 				for (int i = 0; i < 10; i++) {
 					ThreadedKernel.alarm.waitUntil(1000);
-					//Lib.debug('m', "Low is happy " + i);
-					System.out.println("Low is happy "+i);
+					// Lib.debug('m', "Low is happy " + i);
+					System.out.println("Low is happy " + i);
 				}
 				mutex.release();
 			}
@@ -496,9 +503,9 @@ public class LotteryScheduler extends PriorityScheduler {
 		ThreadedKernel.scheduler.setPriority(t3, 2);
 		t.fork();
 		t2.fork();
-		//t3.fork();
+		// t3.fork();
 		Machine.interrupt().restore(intStatus);
 		ThreadedKernel.alarm.waitUntil(1000000);
-		
+
 	}
 }

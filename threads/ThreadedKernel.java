@@ -21,7 +21,7 @@ public class ThreadedKernel extends Kernel {
 		// set scheduler
 		String schedulerName = Config.getString("ThreadedKernel.scheduler");
 		scheduler = (Scheduler) Lib.constructObject(schedulerName);
-		
+
 		// set fileSystem
 		String fileSystemName = Config.getString("ThreadedKernel.fileSystem");
 		if (fileSystemName != null)
@@ -46,10 +46,10 @@ public class ThreadedKernel extends Kernel {
 	 */
 	public void selfTest() {
 		System.out.println("selfTest begin");
-		//Boat.selfTest();
-		 //LotteryScheduler.selfTest1();
-		 // LotteryScheduler.selfTest2();
-		 LotteryScheduler.selfTest3();
+		// Boat.selfTest();
+		// LotteryScheduler.selfTest1();
+		// LotteryScheduler.selfTest2();
+		LotteryScheduler.selfTest3();
 		// PriorityScheduler.selfTest1();
 		// PriorityScheduler.selfTest2();
 		// PriorityScheduler.selfTest3();
