@@ -39,7 +39,8 @@ public class LotteryScheduler extends PriorityScheduler {
 	 * @return a new priority thread queue.
 	 */
 	public ThreadQueue newThreadQueue(boolean transferPriority) {
-		return new LotteryQueue(transferPriority);
+		ThreadQueue queue=new LotteryQueue(transferPriority);
+		return queue;
 	}
 
 	public int getPriority(KThread thread) {
@@ -193,6 +194,7 @@ public class LotteryScheduler extends PriorityScheduler {
 		}
 
 		private void update(int tmp) {
+			
 			if (tmp != sumPriority) {
 				if (resourceHolder != null)
 					resourceHolder.updateResource(this, tmp);
@@ -450,6 +452,7 @@ public class LotteryScheduler extends PriorityScheduler {
 
 	// explicit test of priority inversion
 	public static void selfTest3() {
+		
 		final Lock mutex = new Lock();
 		boolean intStatus = Machine.interrupt().disable();
 		KThread t = new KThread(new Runnable() {
@@ -459,7 +462,8 @@ public class LotteryScheduler extends PriorityScheduler {
 				int s = 0;
 				for (int i = 0; i < 10; i++) {
 					ThreadedKernel.alarm.waitUntil(1000);
-					Lib.debug('m', "Low is happy " + i);
+					//Lib.debug('m', "Low is happy " + i);
+					System.out.println("Low is happy "+i);
 				}
 				mutex.release();
 			}
@@ -478,7 +482,7 @@ public class LotteryScheduler extends PriorityScheduler {
 				mutex.release();
 			}
 		});
-		ThreadedKernel.scheduler.setPriority(t2, 2);
+		ThreadedKernel.scheduler.setPriority(t2, 3);
 		KThread t3 = new KThread(new Runnable() {
 			@Override
 			public void run() {
@@ -489,11 +493,12 @@ public class LotteryScheduler extends PriorityScheduler {
 				}
 			}
 		});
-		ThreadedKernel.scheduler.setPriority(t3, 1);
+		ThreadedKernel.scheduler.setPriority(t3, 2);
 		t.fork();
 		t2.fork();
-		t3.fork();
+		//t3.fork();
 		Machine.interrupt().restore(intStatus);
 		ThreadedKernel.alarm.waitUntil(1000000);
+		
 	}
 }

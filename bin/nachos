@@ -11,5 +11,5 @@ onexit () {
 OLDSTTYSTATE=`stty -g`
 trap onexit 0
 stty -icanon min 1 -echo
-java nachos.machine.Machine $*
+java -XX:MaxJavaStackTraceDepth=1000000 nachos.machine.Machine $*
 

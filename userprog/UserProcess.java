@@ -305,7 +305,8 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "\tcoff load failed");
 			return false;
 		}
-
+		
+		
 		// make sure the sections are contiguous and start at page 0
 		numPages = 0;
 		for (int s = 0; s < coff.getNumSections(); s++) {
@@ -331,6 +332,7 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "\targuments too long");
 			return false;
 		}
+
 
 		// program counter initially points at the program entry point
 		initialPC = coff.getEntryPoint();
@@ -505,13 +507,16 @@ public class UserProcess {
 				break;
 			}
 		}
+		
 		if (idx == -1)
 			return -1;
-		if (!UserKernel.fileManager.open(file))
-			return -1;
+		
 		OpenFile openFile = UserKernel.fileSystem.open(file, false);
 		if (openFile == null)
 			return -1;
+		if (!UserKernel.fileManager.open(file))
+			return -1;
+		
 		fileList[idx] = openFile;
 		return idx;
 	}
@@ -593,6 +598,7 @@ public class UserProcess {
 		String file = readVirtualMemoryString(address, 256);
 		if (file == null)
 			return -1;
+		
 		if (UserKernel.fileManager.unlink(file))
 			return 0;
 		return -1;
@@ -660,9 +666,8 @@ public class UserProcess {
 		if (addr < 0 || argc < 0 || argv < 0 || argc > 65536)
 			return -1;
 		String file = readVirtualMemoryString(addr, 256);
-		if (file != null || !file.toLowerCase().endsWith(".coff"))
+		if (file == null || !file.toLowerCase().endsWith(".coff"))
 			return -1;
-
 		String[] arguments = new String[argc];
 		// read those arguments from virtual address
 		for (int i = 0; i < argc; i++) {

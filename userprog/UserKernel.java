@@ -26,7 +26,7 @@ public class UserKernel extends ThreadedKernel {
 	 */
 	public void initialize(String[] args) {
 		super.initialize(args);
-
+		
 		console = new SynchConsole(Machine.console());
 
 		Machine.processor().setExceptionHandler(new Runnable() {
@@ -34,6 +34,8 @@ public class UserKernel extends ThreadedKernel {
 				exceptionHandler();
 			}
 		});
+		
+		
 
 		fileManager = new FileManager();
 		pageMutex = new Lock();
@@ -49,15 +51,14 @@ public class UserKernel extends ThreadedKernel {
 		}
 
 		pageMutex.release();
+		
 	}
 
 	/**
 	 * Test the console device.
 	 */
-	public void selfTest() {
-		super.selfTest();
-
-		System.out.println("Testing the console device. Typed characters");
+	 public void selfTest1(){
+	 	System.out.println("Testing the console device. Typed characters");
 		System.out.println("will be echoed until q is typed.");
 
 		char c;
@@ -68,6 +69,12 @@ public class UserKernel extends ThreadedKernel {
 		} while (c != 'q');
 
 		System.out.println("");
+	 }
+	 
+	public void selfTest() {
+		super.selfTest();
+		
+		// self.selfTest1();
 	}
 
 	/**
@@ -140,9 +147,8 @@ public class UserKernel extends ThreadedKernel {
 		boolean open(String file) {
 			mutex.acquire();
 			if (!map.containsKey(file)) {
-				// I think, with open we can not create file
-				mutex.release();
-				return false;
+				FileRecord record = new FileRecord();
+				map.put(file,record);
 			}
 
 			FileRecord record = map.get(file);
@@ -158,7 +164,6 @@ public class UserKernel extends ThreadedKernel {
 		boolean close(String file) {
 			mutex.acquire();
 			if (!map.containsKey(file)) {
-				// I think, with open we can not create file
 				mutex.release();
 				return false;
 			}
@@ -194,8 +199,13 @@ public class UserKernel extends ThreadedKernel {
 		boolean unlink(String file) {
 			mutex.acquire();
 			if (!map.containsKey(file)) {
-				mutex.release();
-				return false;
+				if (fileSystem.remove(file)){
+					mutex.release();
+					return true;
+				}else{
+					mutex.release();
+					return false;
+				}
 			}
 			FileRecord record = map.get(file);
 			if (record.count == 0) {
