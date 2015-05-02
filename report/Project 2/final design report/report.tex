@@ -28,7 +28,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make title
-\title{Project 2 - Initial Design Document}
+\title{Project 2 - Final Design Document}
 \author{Chen Lijie\\ \and
 	Fan Haoqiang\\ \and
 	Bi Ke\\ }
@@ -546,8 +546,8 @@
 			\State \Return -1
 			\EndIf
 			\State child $\leftarrow$ new UserProcess
-			\If{child.execute(file,arguments)}
 			\State child.parent $\leftarrow$ this
+			\If{child.execute(file,arguments)}
 			\State childList.add(child)
 			\State \Return child.processId
 			\Else
@@ -569,6 +569,7 @@
 	Indeed we don't need to change much details from our previous implementation of priority Scheduler.
 	
 	We only need to change the update for the priority donation and the way to pick the next thread.
+	
 	\subsection{Correctness Invariants}
 	\begin{itemize}
 		\item Those method should be atomic.
