@@ -24,7 +24,7 @@ int main(int argc,char ** argv){
 	int lines,tmp;
 	int pid=exec(countlines,2,call1);
 	join(pid,&lines);
-	printf("pid %d lines %d\n",pid,lines);
+	//printf("pid %d lines %d\n",pid,lines);
 	if (lines<=1){
 		if (strcmp(argv[1],argv[2])){
 			join(exec(cp,3,call2),&tmp);
@@ -37,7 +37,7 @@ int main(int argc,char ** argv){
 		sprintf(buf1,"%d.out",wid1);
 		sprintf(buf2,"%d.out",wid2);
 		sprintf(buf3,"%d",wid1+1);
-		sprintf(buf4,"%d",wid2+2);
+		sprintf(buf4,"%d",wid2+1);
 		join(exec(splitints,4,call3),&tmp);
 		int pid1=exec(mergesort,4,call4);
 		int pid2=exec(mergesort,4,call5);
