@@ -45,11 +45,11 @@ public class ThreadedKernel extends Kernel {
 	 * here.
 	 */
 	public void selfTest() {
-		System.out.println("selfTest begin");
+		// System.out.println("selfTest begin");
 		// Boat.selfTest();
 		// LotteryScheduler.selfTest1();
 		// LotteryScheduler.selfTest2();
-		LotteryScheduler.selfTest3();
+		// LotteryScheduler.selfTest3();
 		// PriorityScheduler.selfTest1();
 		// PriorityScheduler.selfTest2();
 		// PriorityScheduler.selfTest3();
@@ -63,7 +63,7 @@ public class ThreadedKernel extends Kernel {
 		// KThread.selfTest2();
 		// Condition2.selfTest();
 		// Alarm.selfTest();
-		System.out.println("selfTest end");
+		// System.out.println("selfTest end");
 	}
 
 	/**

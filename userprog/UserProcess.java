@@ -53,7 +53,8 @@ public class UserProcess {
 	 * @return a new process of the correct class.
 	 */
 	public static UserProcess newUserProcess() {
-		return (UserProcess) Lib.constructObject(Machine.getProcessClassName());
+		//return (UserProcess) Lib.constructObject(Machine.getProcessClassName());
+		return new UserProcess();
 	}
 
 	/**
@@ -291,13 +292,11 @@ public class UserProcess {
 	 */
 	private boolean load(String name, String[] args) {
 		Lib.debug(dbgProcess, "UserProcess.load(\"" + name + "\")");
-
 		OpenFile executable = ThreadedKernel.fileSystem.open(name, false);
 		if (executable == null) {
 			Lib.debug(dbgProcess, "\topen failed");
 			return false;
 		}
-
 		try {
 			coff = new Coff(executable);
 		} catch (EOFException e) {
@@ -305,7 +304,6 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "\tcoff load failed");
 			return false;
 		}
-		
 		
 		// make sure the sections are contiguous and start at page 0
 		numPages = 0;
@@ -318,7 +316,6 @@ public class UserProcess {
 			}
 			numPages += section.getLength();
 		}
-
 		// make sure the argv array will fit in one page
 		byte[][] argv = new byte[args.length][];
 		int argsSize = 0;
@@ -333,7 +330,6 @@ public class UserProcess {
 			return false;
 		}
 
-
 		// program counter initially points at the program entry point
 		initialPC = coff.getEntryPoint();
 
@@ -343,10 +339,11 @@ public class UserProcess {
 
 		// and finally reserve 1 page for arguments
 		numPages++;
-
-		if (!loadSections())
+		if (!loadSections()){
+			coff.close();
 			return false;
-
+		}
+		coff.close();
 		// store arguments in last page
 		int entryOffset = (numPages - 1) * pageSize;
 		int stringOffset = entryOffset + args.length * 4;
@@ -577,10 +574,10 @@ public class UserProcess {
 			// It is an error if we cannot read enough bytes from address
 			if (got < read)
 				return -1;
-
 			int wrote = openFile.write(BUFFER, 0, read);
-			if (wrote < 0)
+			if (wrote < 0){
 				return -1;
+			}
 			total += got;
 			address += got;
 
@@ -851,9 +848,9 @@ public class UserProcess {
 
 	private static final int pageSize = Processor.pageSize;
 	private static final char dbgProcess = 'a';
-	private static final int MAX_BUFFER_SIZE = 1 << 15;
-	private static final byte[] BUFFER = new byte[MAX_BUFFER_SIZE];
-	private static final int MAX_FILE_OPEN = 16;
+	private static final int MAX_BUFFER_SIZE = 1 << 12;
+	private byte[] BUFFER = new byte[MAX_BUFFER_SIZE];
+	private static final int MAX_FILE_OPEN = 256;
 
 	private static final int UNEXPECTED_EXCEPTION = -1234;
 	private static final int UNKNOWN_SYSTEM_CALL = -1235;

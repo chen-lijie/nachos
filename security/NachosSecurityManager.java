@@ -175,7 +175,7 @@ public class NachosSecurityManager extends SecurityManager {
      */
     public void checkPermission(Permission perm) {
 	String name = perm.getName();
-	
+
 	// some permissions are strictly forbidden
 	if (perm instanceof RuntimePermission) {
 	    // no creating class loaders
