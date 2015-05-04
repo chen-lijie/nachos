@@ -52,12 +52,12 @@
 	\subsection{Declaration}
 	\subsubsection*{UserProcess}
 	\begin{itemize}
-		\item A static member processCounter, keeps the number of each process.
+		\item A static member processCounter, keeps the number of each process. (modification) Since the id should be positive integer, it is initially 1. Another static constant ROOT\_ID = 1.
 		\item A final member maxBuf, which is the maximum buffer size per read.
 		\item A member processId.
 		\item An array fileList of OpenFile with size 16 to store the opened file.
 		\item Modification in UserProcess(), which set file Descriptor 0 and 1 to stdin and stdout.
-		\item Modification in handleHalt()
+		\item Modification in handleHalt().
 		\item New methods: handleCreate(), handleOpen(), handleRead(), handleWrite(), handleClose(), handleUnlink(). With specified functionality in the task.
 	\end{itemize}
 	\subsubsection*{UserKernel}
@@ -82,9 +82,10 @@
 			\State Restore Interruption
 			\EndProcedure
 		\end{algorithmic}
+		(modification)
 		\begin{algorithmic}
 			\Procedure {handleHalt()}{}
-			\If{processId != 0}
+			\If{processId != ROOT\_ID}
 			\Return -1
 			\EndIf
 			\State Machine.halt()
@@ -387,6 +388,8 @@
 			\State \Return total
 			\EndProcedure
 		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {writeVirtualMemory(vaddr,data,offset,length)}{}
 			\If{vaddr is not valid}
@@ -406,6 +409,8 @@
 			\State \Return total
 			\EndProcedure
 		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {loadSections()}{}
 			\State UserKernel.pagesMutex.acquire()
@@ -467,6 +472,7 @@
 	\subsection{Declaration}
 	\subsubsection*{UserProcess}
 	\begin{itemize}
+		\item (modification) A static member activeProcess, which records the number of process which has not exited.
 		\item A static member processCounter(already defined in Task I).
 		\item A member thread of type UThread, denoting the thread of the current process.
 		\item A member parent of type UserProcess, denoting the parent of the current thread.
@@ -477,7 +483,18 @@
 		
 		\item Methods handleJoin(),handleExec(),handleExit(), with corresponding functionality.
 	\end{itemize}
+	
 	\subsection{Description}
+	(modification)
+	\begin{algorithm}[H]
+		\begin{algorithmic}
+			\Procedure {execute(name,args)}{}
+			\State ..
+			\State ++activeProcess;
+			\State ..
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
 	\begin{algorithm}[H]
 		\begin{algorithmic}
 			\Procedure {UserProcess()}{}
@@ -497,7 +514,8 @@
 			\If{parent != null}
 			\State parent.mapExitStatus.put(processId,status)
 			\EndIf
-			\If{processId == 0}
+			\State activeProcess --
+			\If{activeProcess == 0}
 			\State terminate the Kernel.
 			\Else
 			\State terminate current thread.
@@ -574,6 +592,7 @@
 	\begin{itemize}
 		\item Those method should be atomic.
 		\item The threads are chosen with a probability proportional to the total number of tickets holding by itself and all threads waiting on the resources it holds.
+		\item (modification) The case where transferPriority=False should also be implemented correctly, since the implementation of readQueue needs it.
 	\end{itemize}
 	
 	\subsection{Declaration}
@@ -645,7 +664,7 @@
 			\Procedure {update(tmp)}{}
 			\If{tmp != sumPriority}
 			\If{resourceHolder != null}
-			\State resourceHolder.updateResource(this,maxPriority)
+			\State resourceHolder.updateResource(this,sumPriority)
 			\Else
 			\State sumPriority $\leftarrow$ tmp
 			\EndIf
