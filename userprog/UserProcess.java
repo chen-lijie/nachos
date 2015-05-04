@@ -53,7 +53,8 @@ public class UserProcess {
 	 * @return a new process of the correct class.
 	 */
 	public static UserProcess newUserProcess() {
-		//return (UserProcess) Lib.constructObject(Machine.getProcessClassName());
+		// return (UserProcess)
+		// Lib.constructObject(Machine.getProcessClassName());
 		return new UserProcess();
 	}
 
@@ -304,7 +305,7 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "\tcoff load failed");
 			return false;
 		}
-		
+
 		// make sure the sections are contiguous and start at page 0
 		numPages = 0;
 		for (int s = 0; s < coff.getNumSections(); s++) {
@@ -339,7 +340,7 @@ public class UserProcess {
 
 		// and finally reserve 1 page for arguments
 		numPages++;
-		if (!loadSections()){
+		if (!loadSections()) {
 			coff.close();
 			return false;
 		}
@@ -504,16 +505,16 @@ public class UserProcess {
 				break;
 			}
 		}
-		
+
 		if (idx == -1)
 			return -1;
-		
+
 		OpenFile openFile = UserKernel.fileSystem.open(file, false);
 		if (openFile == null)
 			return -1;
 		if (!UserKernel.fileManager.open(file))
 			return -1;
-		
+
 		fileList[idx] = openFile;
 		return idx;
 	}
@@ -538,6 +539,7 @@ public class UserProcess {
 		if (openFile == null)
 			return -1;
 		int total = 0;
+		byte[] BUFFER = new byte[MAX_BUFFER_SIZE];
 		while (count > 0) {
 			int read = Math.min(count, MAX_BUFFER_SIZE);
 			int got = openFile.read(BUFFER, 0, read);
@@ -567,6 +569,7 @@ public class UserProcess {
 		if (openFile == null)
 			return -1;
 		int total = 0;
+		byte[] BUFFER = new byte[MAX_BUFFER_SIZE];
 		while (count > 0) {
 			int read = Math.min(count, MAX_BUFFER_SIZE);
 			int got = readVirtualMemory(address, BUFFER, 0, read);
@@ -575,7 +578,7 @@ public class UserProcess {
 			if (got < read)
 				return -1;
 			int wrote = openFile.write(BUFFER, 0, read);
-			if (wrote < 0){
+			if (wrote < 0) {
 				return -1;
 			}
 			total += got;
@@ -595,7 +598,7 @@ public class UserProcess {
 		String file = readVirtualMemoryString(address, 256);
 		if (file == null)
 			return -1;
-		
+
 		if (UserKernel.fileManager.unlink(file))
 			return 0;
 		return -1;
@@ -849,7 +852,6 @@ public class UserProcess {
 	private static final int pageSize = Processor.pageSize;
 	private static final char dbgProcess = 'a';
 	private static final int MAX_BUFFER_SIZE = 1 << 12;
-	private byte[] BUFFER = new byte[MAX_BUFFER_SIZE];
 	private static final int MAX_FILE_OPEN = 256;
 
 	private static final int UNEXPECTED_EXCEPTION = -1234;
