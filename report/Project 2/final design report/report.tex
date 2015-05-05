@@ -314,21 +314,10 @@
 	\end{algorithm}
 	\subsection{Description of Tests}
 	\subsection*{Standard tests}
-	Do some standard tests to make sure our implementation works:
+	Try the utilities in the test directory (rm, cat, cp, mv, sh).
 	
-	\begin{itemize}
-		\item open a file, read something from it, then close it.
-		\item create a file, write some to it, then close it.
-		\item make two process open the same file, then unlink it, then both process close it.
-		\item unlink a file, and try to open it before it finally closed.
-	\end{itemize}
 	\subsection*{Bullet-proof tests}
-	Do some special case test to make sure our implementation bullet-proof those user-level mistakes.
-	
-	\begin{itemize}
-		\item test methods by some invalid parameters.
-		\item write, read, close, unlink some files that doesn't exist.
-	\end{itemize}
+	Try 0 length, invalid or read-only address, very long filename, invalid fd in each syscall.
 
 	\section{Implementation of Support for Multiprogramming}
 	\subsection{A simple illustration}
@@ -444,20 +433,13 @@
 		\end{algorithmic}
 	\end{algorithm}
 	\subsection{Description of Tests}
-	Do some standard tests to make sure our implementation works:
-	
-	\begin{itemize}
-		\item call writeVirtualMemory() and readVirtualMemory(), check whether they has the corresponding functionality.
-		\item Test loading and unloading a .coff file.
-	\end{itemize}
+	Do a exec based multi-threaded merge-sort. This exercises all the syscalls.
 	
 	\subsection*{Bullet-proof tests}
-	Do some special case test to make sure our implementation bullet-proof those user-level mistakes.
+	Try invalid file path or pid.
 	
-	\begin{itemize}
-		\item Call those functional by some invalid parameters.
-		\item Try to require a huge memory which exceeds the entire memory of the machine.
-	\end{itemize}
+	Spawn lots of threads (just sort a large file), see if it crashes correctly.
+	
 	\section{Implementation of System calls exec, join and exit}
 	\subsection{A simple illustration}
 	In this architecture, we only have one thread for each process, which will simplify things a lot.
@@ -803,15 +785,8 @@
 		\end{algorithmic}
 	\end{algorithm}
 	\subsection{Description of Tests}
-	\subsection*{Random Test}
 	
-	Set several threads such that the $i$-th has priority $10^{i}$.
-	
-	Then there is a very big chance that they are performed in the decreasing order of priority. Run it multiple times to see if it the cases.
-	
-	\subsection*{Priority Donation Test}
-	
-	Check whether priority donation works by set up a condition, and see when a process release that condition, whether or nor its priority is recovered.
+	Use the LotteryScheduler to run all previous tests, see if they still work.
 \end{document}
 
 
