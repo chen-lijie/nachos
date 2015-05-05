@@ -293,8 +293,11 @@ public class UserProcess {
 	 */
 	private boolean load(String name, String[] args) {
 		Lib.debug(dbgProcess, "UserProcess.load(\"" + name + "\")");
+		if (!UserKernel.fileManager.open(name))
+			return false;
 		OpenFile executable = ThreadedKernel.fileSystem.open(name, false);
 		if (executable == null) {
+			UserKernel.fileManager.close(name);
 			Lib.debug(dbgProcess, "\topen failed");
 			return false;
 		}
@@ -302,6 +305,7 @@ public class UserProcess {
 			coff = new Coff(executable);
 		} catch (EOFException e) {
 			executable.close();
+			UserKernel.fileManager.close(name);
 			Lib.debug(dbgProcess, "\tcoff load failed");
 			return false;
 		}
@@ -312,6 +316,7 @@ public class UserProcess {
 			CoffSection section = coff.getSection(s);
 			if (section.getFirstVPN() != numPages) {
 				coff.close();
+				UserKernel.fileManager.close(name);
 				Lib.debug(dbgProcess, "\tfragmented executable");
 				return false;
 			}
@@ -328,6 +333,7 @@ public class UserProcess {
 		if (argsSize > pageSize) {
 			coff.close();
 			Lib.debug(dbgProcess, "\targuments too long");
+			UserKernel.fileManager.close(name);
 			return false;
 		}
 
@@ -342,6 +348,7 @@ public class UserProcess {
 		numPages++;
 		if (!loadSections()) {
 			coff.close();
+			UserKernel.fileManager.close(name);
 			return false;
 		}
 		coff.close();
@@ -362,6 +369,7 @@ public class UserProcess {
 			stringOffset += 1;
 		}
 
+		UserKernel.fileManager.close(name);
 		return true;
 	}
 
